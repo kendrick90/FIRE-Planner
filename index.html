@@ -151,14 +151,36 @@
             height: 220px;
         }
         .charts-grid {
-            display: flex;
-            flex-direction: column;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
             gap: 16px;
         }
         .chart-panel h3 {
             font-size: 14px;
             color: #8b949e;
             margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .chart-controls {
+            font-weight: normal;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .chart-controls input {
+            width: 88px;
+            padding: 6px 8px;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 4px;
+            color: #e6edf3;
+            font-size: 14px;
+            text-align: right;
         }
         .table-section {
             background: #161b22;
@@ -343,6 +365,11 @@
             color: #8b949e;
             margin-left: auto;
         }
+        @media (max-width: 1100px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
         @media (max-width: 900px) {
             .scenario-bar {
                 flex-direction: column;
@@ -360,6 +387,21 @@
             .scenario-meta {
                 margin-left: 0;
                 text-align: center;
+            }
+        }
+        @media (max-width: 600px) {
+            .chart-controls input {
+                width: 70px;
+                font-size: 12px;
+                padding: 4px 6px;
+            }
+            .chart-controls {
+                font-size: 11px;
+            }
+        }
+        @media (max-width: 400px) {
+            .chart-container {
+                height: 180px;
             }
         }
 
@@ -711,11 +753,10 @@
 
             <div class="charts-grid">
                 <div class="chart-panel">
-                    <h3>Portfolio Balance
-                        <span style="float: right; font-weight: normal; font-size: 12px; display: flex; align-items: center; gap: 4px;">
-                            Y-Max: <input type="text" id="yAxisMax" value="$2,000,000" placeholder="Auto"
-                                style="width: 88px; padding: 6px 8px; background: #0d1117; border: 1px solid #30363d;
-                                border-radius: 4px; color: #e6edf3; font-size: 14px; text-align: right;">
+                    <h3>
+                        <span>Portfolio Balance</span>
+                        <span class="chart-controls">
+                            Y-Max: <input type="text" id="yAxisMax" value="$2,000,000" placeholder="Auto">
                             <div class="btn-group">
                                 <button class="inc-btn" onclick="adjustYMax(1)">+</button>
                                 <button class="inc-btn" onclick="adjustYMax(-1)">−</button>
@@ -728,11 +769,10 @@
                     </div>
                 </div>
                 <div class="chart-panel">
-                    <h3>Annual Cash Flows
-                        <span style="float: right; font-weight: normal; font-size: 12px; display: flex; align-items: center; gap: 4px;">
-                            Y-Max: <input type="text" id="cashFlowYMax" value="$200,000" placeholder="Auto"
-                                style="width: 88px; padding: 6px 8px; background: #0d1117; border: 1px solid #30363d;
-                                border-radius: 4px; color: #e6edf3; font-size: 14px; text-align: right;">
+                    <h3>
+                        <span>Annual Cash Flows</span>
+                        <span class="chart-controls">
+                            Y-Max: <input type="text" id="cashFlowYMax" value="$200,000" placeholder="Auto">
                             <div class="btn-group">
                                 <button class="inc-btn" onclick="adjustCashFlowYMax(1)">+</button>
                                 <button class="inc-btn" onclick="adjustCashFlowYMax(-1)">−</button>
@@ -1081,6 +1121,8 @@
         // Export all scenarios
         function exportScenarios() {
             const scenarios = getScenarios();
+            const currentScenario = scenarios[currentScenarioId];
+            const scenarioName = currentScenario ? currentScenario.name.replace(/[^a-z0-9]/gi, '-').toLowerCase() : 'scenarios';
             const exportData = {
                 version: 1,
                 exportDate: new Date().toISOString(),
@@ -1092,7 +1134,7 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `fire-planner-scenarios-${new Date().toISOString().split('T')[0]}.json`;
+            a.download = `fire-planner-${scenarioName}-${new Date().toISOString().split('T')[0]}.json`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
