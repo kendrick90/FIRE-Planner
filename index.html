@@ -1546,42 +1546,46 @@
                 const annualRent = monthlyRent * 12;
                 const annualRetirementExpenses = retirementExpenses * 12;
 
-                // Handle house purchase
+                // Handle house purchase - calculate mortgage details
                 if (isBuyYear) {
-                    // Calculate available funds before down payment
-                    const monthlySavingsBeforeBuy = monthlyIncome - monthlyRent - monthlyExpenses;
-                    const availableFunds = balance + (balance * annualReturn) + monthlySavingsBeforeBuy * 12;
-                    const actualDownPayment = Math.min(downPayment, Math.max(0, availableFunds));
-                    cashOut = actualDownPayment;
+                    // Calculate available funds for down payment
+                    // In buy year: no rent, just expenses (mortgage calc comes after)
+                    const buyYearSavings = (monthlyIncome - monthlyExpenses) * 12;
+                    const availableFunds = balance + (balance * annualReturn) + buyYearSavings;
+                    const actualDownPayment = Math.min(downPayment, housePrice, Math.max(0, availableFunds));
                     // Mortgage covers rest of house price
                     mortgageBalance = housePrice - actualDownPayment;
                     // Calculate mortgage payment based on actual loan amount
                     actualMonthlyMortgage = calculateMortgagePayment(mortgageBalance, mortgageRate, mortgageTerm);
                     annualMortgage = actualMonthlyMortgage * 12;
                     mortgageStartYear = year;
+                    // Down payment comes from portfolio
+                    cashOut = actualDownPayment;
                 }
 
-                // Determine cash flows based on income status
+                // Calculate mortgage payment (needed for cash flow calculations)
+                if (hasHouse && mortgageBalance > 0) {
+                    mortgagePayment = annualMortgage;
+                }
+
                 if (!isRetired) {
-                    // Still working - calculate savings from income minus expenses
+                    // Still working - income comes in
                     cashIn = annualIncome;
 
-                    // Housing costs (rent or mortgage)
+                    // Calculate expenses (ADD to cashOut, don't replace - important for buy year)
                     if (!hasHouse) {
-                        // Renting
-                        cashOut = annualRent + annualExpenses;
-                    } else if (hasMortgage || isBuyYear) {
-                        // Has mortgage
-                        cashOut += annualExpenses;
+                        // Renting: rent + other expenses
+                        cashOut += annualRent + annualExpenses;
                     } else {
-                        // Own outright
-                        cashOut = annualExpenses;
+                        // Own or have mortgage: other expenses + mortgage
+                        cashOut += annualExpenses + mortgagePayment;
                     }
 
                     // Extra principal payment if prioritizing mortgage
                     if (!isBuyYear && prioritizeMortgage && mortgageBalance > 0) {
-                        const netSavings = annualIncome - cashOut - annualMortgage;
+                        const netSavings = annualIncome - cashOut;
                         extraPrincipal = Math.min(Math.max(0, netSavings), mortgageBalance);
+                        cashOut += extraPrincipal;
                     }
                 } else {
                     // Retired - living off portfolio
@@ -1589,19 +1593,12 @@
                         cashIn = socialSecurity;
                     }
 
-                    // Housing costs in retirement
+                    // Expenses in retirement
                     if (!hasHouse) {
-                        cashOut = annualRent + annualRetirementExpenses;
-                    } else if (hasMortgage) {
-                        cashOut = annualRetirementExpenses;
+                        cashOut += annualRent + annualRetirementExpenses;
                     } else {
-                        cashOut = annualRetirementExpenses;
+                        cashOut += annualRetirementExpenses + mortgagePayment;
                     }
-                }
-
-                // Add mortgage payment if applicable
-                if (hasHouse && mortgageBalance > 0) {
-                    mortgagePayment = annualMortgage;
                 }
 
                 // Determine phase name
@@ -1612,8 +1609,8 @@
                 const startBalance = Math.max(0, balance);
                 const gains = startBalance * annualReturn;
 
-                // Calculate end balance
-                balance = Math.max(0, startBalance + gains + cashIn - cashOut - mortgagePayment);
+                // Calculate end balance (mortgage payment already included in cashOut)
+                balance = Math.max(0, startBalance + gains + cashIn - cashOut);
 
                 // Update mortgage balance (only if payment was made)
                 if (mortgagePayment > 0 || extraPrincipal > 0) {
@@ -1866,11 +1863,11 @@
                 cashFlowChart.data.datasets[0].data = data.map(d => d.cashIn);
                 cashFlowChart.data.datasets[1].data = data.map(d => d.cashOut);
                 cashFlowChart.data.datasets[2].data = data.map(d => d.rent);
-                cashFlowChart.data.datasets[3].data = data.map(d => d.gains + d.cashIn - d.cashOut - d.mortgagePayment);
+                cashFlowChart.data.datasets[3].data = data.map(d => d.gains + d.cashIn - d.cashOut);
                 cashFlowChart.data.datasets[4].data = data.map(d => d.gains);
                 const cfYMaxInput = document.getElementById('cashFlowYMax').value;
                 const cfYMaxValue = parseCurrency(cfYMaxInput);
-                const cfDataMax = Math.max(...data.map(d => Math.max(d.cashIn, d.cashOut, d.gains, Math.abs(d.gains + d.cashIn - d.cashOut - d.mortgagePayment))));
+                const cfDataMax = Math.max(...data.map(d => Math.max(d.cashIn, d.cashOut, d.gains, Math.abs(d.gains + d.cashIn - d.cashOut))));
                 cashFlowChart.options.scales.y.max = cfYMaxValue > 0 ? Math.min(cfYMaxValue, cfDataMax * 1.1) : undefined;
                 cashFlowChart.update('none');
 
@@ -1924,7 +1921,7 @@
             const cashFlowOptions = createChartOptions();
             const cfYMaxInput = document.getElementById('cashFlowYMax').value;
             const cfYMaxValue = parseCurrency(cfYMaxInput);
-            const cfDataMax = Math.max(...data.map(d => Math.max(d.cashIn, d.cashOut, d.gains, Math.abs(d.gains + d.cashIn - d.cashOut - d.mortgagePayment))));
+            const cfDataMax = Math.max(...data.map(d => Math.max(d.cashIn, d.cashOut, d.gains, Math.abs(d.gains + d.cashIn - d.cashOut))));
             if (cfYMaxValue > 0) {
                 cashFlowOptions.scales.y.max = Math.min(cfYMaxValue, cfDataMax * 1.1);
             }
@@ -1960,7 +1957,7 @@
                         },
                         {
                             label: 'Net Change',
-                            data: data.map(d => d.gains + d.cashIn - d.cashOut - d.mortgagePayment),
+                            data: data.map(d => d.gains + d.cashIn - d.cashOut),
                             borderColor: '#8b949e',
                             backgroundColor: 'rgba(248, 81, 73, 0.25)',
                             borderWidth: 2,
