@@ -2147,12 +2147,33 @@
                 const yAxis = chart.scales.y;
                 const labels = chart.data.labels;
 
+                // Calculate positions and detect overlaps
+                const labelHeight = 14;
+                const minSpacing = 50; // minimum pixels between labels horizontally
+                const positions = [];
+
                 milestones.forEach(m => {
                     const index = labels.indexOf(m.age);
                     if (index === -1) return;
 
                     const xPos = xAxis.getPixelForValue(index);
                     if (xPos < xAxis.left || xPos > xAxis.right) return;
+
+                    // Find vertical offset to avoid overlaps
+                    let yOffset = 12;
+                    for (const pos of positions) {
+                        if (Math.abs(xPos - pos.x) < minSpacing) {
+                            // Labels are close, stagger vertically
+                            yOffset = Math.max(yOffset, pos.y + labelHeight);
+                        }
+                    }
+                    positions.push({ x: xPos, y: yOffset, milestone: m });
+                });
+
+                // Draw lines and labels
+                positions.forEach(pos => {
+                    const m = pos.milestone;
+                    const xPos = pos.x;
 
                     ctx.save();
                     ctx.beginPath();
@@ -2166,7 +2187,7 @@
                     ctx.fillStyle = m.color || '#8b949e';
                     ctx.font = '10px -apple-system, BlinkMacSystemFont, sans-serif';
                     ctx.textAlign = 'left';
-                    ctx.fillText(m.label, xPos + 4, yAxis.top + 12);
+                    ctx.fillText(m.label, xPos + 4, yAxis.top + pos.y);
                     ctx.restore();
                 });
             }
@@ -2219,7 +2240,10 @@
                             pointStyle: 'line',
                             font: { size: 11 },
                             padding: 8,
-                            color: '#e6edf3'
+                            color: '#e6edf3',
+                            filter: function(item) {
+                                return item.text !== 'Mortality Probability';
+                            }
                         }
                     },
                     tooltip: {
@@ -2322,7 +2346,12 @@
                 const cfYMaxInput = document.getElementById('cashFlowYMax').value;
                 const cfYMaxValue = parseCurrency(cfYMaxInput);
                 const cfDataMax = Math.max(...data.map(d => Math.max(getVal(d, 'cashIn'), getVal(d, 'cashOut'), getVal(d, 'gains'))));
+                const cfDataMin = Math.min(...data.map(d => {
+                    const netChange = d.gains + d.cashIn - d.cashOut;
+                    return showRealDollars ? netChange / d.inflationMultiplier : netChange;
+                }), 0);
                 cashFlowChart.options.scales.y.max = cfYMaxValue > 0 ? Math.min(cfYMaxValue, cfDataMax * 1.1) : undefined;
+                cashFlowChart.options.scales.y.min = cfYMaxValue > 0 ? Math.max(-cfYMaxValue, cfDataMin * 1.1) : undefined;
                 cashFlowChart.update('none');
 
                 mortgageChart.data.labels = labels;
@@ -2423,8 +2452,13 @@
             const cfYMaxInput = document.getElementById('cashFlowYMax').value;
             const cfYMaxValue = parseCurrency(cfYMaxInput);
             const cfDataMax = Math.max(...data.map(d => Math.max(getVal(d, 'cashIn'), getVal(d, 'cashOut'), getVal(d, 'gains'))));
+            const cfDataMin = Math.min(...data.map(d => {
+                const netChange = d.gains + d.cashIn - d.cashOut;
+                return showRealDollars ? netChange / d.inflationMultiplier : netChange;
+            }), 0);
             if (cfYMaxValue > 0) {
                 cashFlowOptions.scales.y.max = Math.min(cfYMaxValue, cfDataMax * 1.1);
+                cashFlowOptions.scales.y.min = Math.max(-cfYMaxValue, cfDataMin * 1.1);
             }
 
             cashFlowChart = new Chart(document.getElementById('cashFlowChart').getContext('2d'), {
