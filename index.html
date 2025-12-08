@@ -1805,7 +1805,8 @@
                         display: showLegend,
                         position: 'top',
                         labels: {
-                            boxWidth: 12,
+                            usePointStyle: true,
+                            pointStyle: 'line',
                             font: { size: 11 },
                             padding: 8,
                             color: '#e6edf3'
@@ -1818,7 +1819,13 @@
                         borderColor: '#30363d',
                         borderWidth: 1,
                         boxPadding: 4,
+                        boxWidth: 12,
+                        boxHeight: 2,
+                        usePointStyle: false,
                         callbacks: {
+                            title: function(tooltipItems) {
+                                return 'Age ' + tooltipItems[0].label;
+                            },
                             label: function(context) {
                                 return context.dataset.label + ': $' +
                                        Math.round(context.raw).toLocaleString();
