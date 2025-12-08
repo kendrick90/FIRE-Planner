@@ -1461,7 +1461,7 @@
         }
 
         function calculateMortgagePayment(principal, annualRate, years) {
-            if (principal <= 0) return 0;
+            if (principal <= 0 || years <= 0) return 0;
             const monthlyRate = annualRate / 100 / 12;
             const numPayments = years * 12;
             if (monthlyRate === 0) return principal / numPayments;
@@ -1546,13 +1546,18 @@
                 const annualRent = monthlyRent * 12;
                 const annualRetirementExpenses = retirementExpenses * 12;
 
+                // Track down payment for gains calculation (down payment is made at start of year)
+                let actualDownPayment = 0;
+
                 // Handle house purchase - calculate mortgage details
                 if (isBuyYear) {
                     // Calculate available funds for down payment
-                    // In buy year: no rent, just expenses (mortgage calc comes after)
-                    const buyYearSavings = (monthlyIncome - monthlyExpenses) * 12;
+                    // Use appropriate expenses based on retirement status
+                    const buyYearExpenses = isRetired ? retirementExpenses : monthlyExpenses;
+                    const buyYearIncome = isRetired ? (hasSS ? socialSecurity / 12 : 0) : monthlyIncome;
+                    const buyYearSavings = (buyYearIncome - buyYearExpenses) * 12;
                     const availableFunds = balance + (balance * annualReturn) + buyYearSavings;
-                    const actualDownPayment = Math.min(downPayment, housePrice, Math.max(0, availableFunds));
+                    actualDownPayment = Math.min(downPayment, housePrice, Math.max(0, availableFunds));
                     // Mortgage covers rest of house price
                     mortgageBalance = housePrice - actualDownPayment;
                     // Calculate mortgage payment based on actual loan amount
@@ -1614,7 +1619,9 @@
                 phase = isBuyYear ? 'Buy House' : `${incomeStatus} / ${housingStatus}`;
 
                 const startBalance = Math.max(0, balance);
-                const gains = startBalance * annualReturn;
+                // In buy year, down payment is made at start of year, so gains are on remaining balance
+                const balanceForGains = isBuyYear ? Math.max(0, startBalance - actualDownPayment) : startBalance;
+                const gains = balanceForGains * annualReturn;
 
                 // Calculate end balance (mortgage payment already included in cashOut)
                 balance = Math.max(0, startBalance + gains + cashIn - cashOut);
