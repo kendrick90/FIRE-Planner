@@ -1565,7 +1565,9 @@
 
                 // Calculate mortgage payment (needed for cash flow calculations)
                 if (hasHouse && mortgageBalance > 0) {
-                    mortgagePayment = annualMortgage;
+                    // Cap payment at balance + interest (don't overpay on final payment)
+                    const maxPayment = mortgageBalance + (mortgageBalance * mortgageRate / 100);
+                    mortgagePayment = Math.min(annualMortgage, maxPayment);
                 }
 
                 if (!isRetired) {
@@ -1583,8 +1585,13 @@
 
                     // Extra principal payment if prioritizing mortgage
                     if (!isBuyYear && prioritizeMortgage && mortgageBalance > 0) {
+                        // Calculate how much principal the regular payment covers
+                        const interestThisYear = mortgageBalance * (mortgageRate / 100);
+                        const regularPrincipal = Math.max(0, mortgagePayment - interestThisYear);
+                        // Extra principal is capped at remaining balance after regular principal
+                        const remainingBalance = Math.max(0, mortgageBalance - regularPrincipal);
                         const netSavings = annualIncome - cashOut;
-                        extraPrincipal = Math.min(Math.max(0, netSavings), mortgageBalance);
+                        extraPrincipal = Math.min(Math.max(0, netSavings), remainingBalance);
                         cashOut += extraPrincipal;
                     }
                 } else {
