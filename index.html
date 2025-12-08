@@ -1722,6 +1722,10 @@
         // Dark mode colors for Chart.js
         Chart.defaults.color = '#8b949e';
         Chart.defaults.borderColor = '#30363d';
+        // Hide dots but keep tooltips working
+        Chart.defaults.elements.point.radius = 0;
+        Chart.defaults.elements.point.hitRadius = 10;
+        Chart.defaults.elements.point.hoverRadius = 4;
 
         // Custom plugin for milestone vertical lines
         const milestonePlugin = {
