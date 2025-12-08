@@ -225,6 +225,30 @@
         }
         .negative { color: #f85149; }
         .positive { color: #3fb950; }
+
+        /* Custom scrollbar */
+        .table-section ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        .table-section ::-webkit-scrollbar-track {
+            background: #161b22;
+            border-radius: 4px;
+        }
+        .table-section ::-webkit-scrollbar-thumb {
+            background: #30363d;
+            border-radius: 4px;
+        }
+        .table-section ::-webkit-scrollbar-thumb:hover {
+            background: #484f58;
+        }
+        .table-section {
+            scrollbar-width: thin;
+            scrollbar-color: #30363d #161b22;
+        }
+        .table-section > div {
+            padding-right: 12px;
+        }
     </style>
 </head>
 <body>
@@ -242,7 +266,7 @@
                     <div class="input-row">
                         <label>Current Age</label>
                         <div class="input-with-buttons">
-                            <input type="number" id="currentAge" value="35">
+                            <input type="number" id="currentAge" value="18">
                             <div class="btn-group">
                                 <button class="inc-btn" onclick="adjustNum('currentAge', 1)">+</button>
                                 <button class="inc-btn" onclick="adjustNum('currentAge', -1)">−</button>
@@ -252,7 +276,7 @@
                     <div class="input-row">
                         <label>Retirement Age</label>
                         <div class="input-with-buttons">
-                            <input type="number" id="retirementAge" value="42">
+                            <input type="number" id="retirementAge" value="30">
                             <div class="btn-group">
                                 <button class="inc-btn" onclick="adjustNum('retirementAge', 1)">+</button>
                                 <button class="inc-btn" onclick="adjustNum('retirementAge', -1)">−</button>
@@ -266,7 +290,7 @@
                     <div class="input-row">
                         <label>Initial Balance</label>
                         <div class="input-with-buttons">
-                            <input type="text" id="initialBalance" value="235000">
+                            <input type="text" id="initialBalance" value="1000">
                             <div class="btn-group">
                                 <button class="inc-btn" onclick="adjustValue('initialBalance', 1000)">+</button>
                                 <button class="inc-btn" onclick="adjustValue('initialBalance', -1000)">−</button>
@@ -276,7 +300,7 @@
                     <div class="input-row">
                         <label>Monthly Savings</label>
                         <div class="input-with-buttons">
-                            <input type="text" id="monthlySavings" value="7000">
+                            <input type="text" id="monthlySavings" value="4000">
                             <div class="btn-group">
                                 <button class="inc-btn" onclick="adjustValue('monthlySavings', 500)">+</button>
                                 <button class="inc-btn" onclick="adjustValue('monthlySavings', -500)">−</button>
@@ -284,19 +308,19 @@
                         </div>
                     </div>
                     <div class="input-row">
-                        <label>Annual Return (%)</label>
+                        <label>Annual Return</label>
                         <div class="input-with-buttons">
-                            <input type="number" id="annualReturn" value="5" step="0.5">
+                            <input type="text" id="annualReturn" value="5%">
                             <div class="btn-group">
-                                <button class="inc-btn" onclick="adjustNum('annualReturn', 0.5)">+</button>
-                                <button class="inc-btn" onclick="adjustNum('annualReturn', -0.5)">−</button>
+                                <button class="inc-btn" onclick="adjustPercent('annualReturn', 0.5)">+</button>
+                                <button class="inc-btn" onclick="adjustPercent('annualReturn', -0.5)">−</button>
                             </div>
                         </div>
                     </div>
                     <div class="input-row">
                         <label>Monthly Withdrawal</label>
                         <div class="input-with-buttons">
-                            <input type="text" id="monthlyWithdrawal" value="4000">
+                            <input type="text" id="monthlyWithdrawal" value="2500">
                             <div class="btn-group">
                                 <button class="inc-btn" onclick="adjustValue('monthlyWithdrawal', 500)">+</button>
                                 <button class="inc-btn" onclick="adjustValue('monthlyWithdrawal', -500)">−</button>
@@ -310,7 +334,7 @@
                     <div class="input-row">
                         <label>House Purchase Age</label>
                         <div class="input-with-buttons">
-                            <input type="number" id="houseAge" value="36">
+                            <input type="number" id="houseAge" value="28">
                             <div class="btn-group">
                                 <button class="inc-btn" onclick="adjustNum('houseAge', 1)">+</button>
                                 <button class="inc-btn" onclick="adjustNum('houseAge', -1)">−</button>
@@ -320,7 +344,7 @@
                     <div class="input-row">
                         <label>House Price</label>
                         <div class="input-with-buttons">
-                            <input type="text" id="housePrice" value="190000">
+                            <input type="text" id="housePrice" value="200000">
                             <div class="btn-group">
                                 <button class="inc-btn" onclick="adjustValue('housePrice', 1000)">+</button>
                                 <button class="inc-btn" onclick="adjustValue('housePrice', -1000)">−</button>
@@ -330,7 +354,7 @@
                     <div class="input-row">
                         <label>Down Payment</label>
                         <div class="input-with-buttons">
-                            <input type="text" id="downPayment" value="150000">
+                            <input type="text" id="downPayment" value="40000">
                             <div class="btn-group">
                                 <button class="inc-btn" onclick="adjustValue('downPayment', 1000)">+</button>
                                 <button class="inc-btn" onclick="adjustValue('downPayment', -1000)">−</button>
@@ -338,19 +362,19 @@
                         </div>
                     </div>
                     <div class="input-row">
-                        <label>Mortgage Rate (%)</label>
+                        <label>Mortgage Rate</label>
                         <div class="input-with-buttons">
-                            <input type="number" id="mortgageRate" value="6" step="0.125">
+                            <input type="text" id="mortgageRate" value="6%">
                             <div class="btn-group">
-                                <button class="inc-btn" onclick="adjustNum('mortgageRate', 0.25)">+</button>
-                                <button class="inc-btn" onclick="adjustNum('mortgageRate', -0.25)">−</button>
+                                <button class="inc-btn" onclick="adjustPercent('mortgageRate', 0.25)">+</button>
+                                <button class="inc-btn" onclick="adjustPercent('mortgageRate', -0.25)">−</button>
                             </div>
                         </div>
                     </div>
                     <div class="input-row">
                         <label>Mortgage Term (yrs)</label>
                         <div class="input-with-buttons">
-                            <input type="number" id="mortgageTerm" value="15">
+                            <input type="number" id="mortgageTerm" value="30">
                             <div class="btn-group">
                                 <button class="inc-btn" onclick="adjustNum('mortgageTerm', 5)">+</button>
                                 <button class="inc-btn" onclick="adjustNum('mortgageTerm', -5)">−</button>
@@ -386,7 +410,18 @@
 
             <div class="charts-grid">
                 <div class="chart-panel">
-                    <h3>Portfolio Balance</h3>
+                    <h3>Portfolio Balance
+                        <span style="float: right; font-weight: normal; font-size: 12px; display: flex; align-items: center; gap: 4px;">
+                            Y-Max: <input type="text" id="yAxisMax" value="$2,000,000" placeholder="Auto"
+                                style="width: 88px; padding: 6px 8px; background: #0d1117; border: 1px solid #30363d;
+                                border-radius: 4px; color: #e6edf3; font-size: 14px; text-align: right;">
+                            <div class="btn-group">
+                                <button class="inc-btn" onclick="adjustYMax(1)">+</button>
+                                <button class="inc-btn" onclick="adjustYMax(-1)">−</button>
+                            </div>
+                            <button class="inc-btn" onclick="clearYMax()" style="width: auto; height: auto; padding: 2px 6px; font-size: 10px;">Auto</button>
+                        </span>
+                    </h3>
                     <div class="chart-container">
                         <canvas id="balanceChart"></canvas>
                     </div>
@@ -449,7 +484,14 @@
         function adjustValue(id, amount) {
             const input = document.getElementById(id);
             const currentValue = parseCurrency(input.value);
-            const newValue = Math.max(0, currentValue + amount);
+            let newValue = Math.max(0, currentValue + amount);
+
+            // Down payment can't exceed house price
+            if (id === 'downPayment') {
+                const housePrice = parseCurrency(document.getElementById('housePrice').value);
+                newValue = Math.min(newValue, housePrice);
+            }
+
             input.value = formatCurrency(newValue);
             calculate();
         }
@@ -457,9 +499,62 @@
         function adjustNum(id, amount) {
             const input = document.getElementById(id);
             const currentValue = parseFloat(input.value) || 0;
-            const newValue = Math.max(0, currentValue + amount);
+            let newValue = Math.max(0, currentValue + amount);
+
+            // House age and retirement age can't be lower than current age
+            if (id === 'houseAge' || id === 'retirementAge') {
+                const currentAge = parseInt(document.getElementById('currentAge').value) || 0;
+                newValue = Math.max(currentAge, newValue);
+            }
+
             input.value = newValue;
             calculate();
+        }
+
+        function parsePercent(value) {
+            return parseFloat(value.toString().replace(/[^0-9.-]/g, '')) || 0;
+        }
+
+        function formatPercent(value) {
+            const num = parseFloat(value.toString().replace(/[^0-9.-]/g, ''));
+            if (isNaN(num)) return '';
+            return num + '%';
+        }
+
+        function adjustPercent(id, amount) {
+            const input = document.getElementById(id);
+            const currentValue = parsePercent(input.value);
+            const newValue = Math.max(0, currentValue + amount);
+            input.value = formatPercent(newValue);
+            calculate();
+        }
+
+        function adjustYMax(direction) {
+            const input = document.getElementById('yAxisMax');
+            const currentValue = parseCurrency(input.value) || 500000;
+
+            // Smart step based on current value
+            let step;
+            if (currentValue < 100000) step = 25000;
+            else if (currentValue < 500000) step = 50000;
+            else if (currentValue < 1000000) step = 100000;
+            else if (currentValue < 5000000) step = 250000;
+            else step = 500000;
+
+            const newValue = Math.max(step, currentValue + (step * direction));
+            input.value = formatCurrency(newValue);
+            calculate();
+        }
+
+        function clearYMax() {
+            document.getElementById('yAxisMax').value = '';
+            calculate();
+        }
+
+        function formatYMax() {
+            const input = document.getElementById('yAxisMax');
+            const val = parseCurrency(input.value);
+            if (val > 0) input.value = formatCurrency(val);
         }
 
         // Hold-to-repeat functionality for +/- buttons
@@ -504,15 +599,33 @@
         function calculate() {
             // Get inputs (use getValue for currency fields)
             const currentAge = parseInt(document.getElementById('currentAge').value) || 0;
-            const retirementAge = parseInt(document.getElementById('retirementAge').value) || 0;
+            let retirementAge = parseInt(document.getElementById('retirementAge').value) || 0;
+
+            // Retirement age can't be lower than current age
+            if (retirementAge < currentAge) {
+                retirementAge = currentAge;
+                document.getElementById('retirementAge').value = retirementAge;
+            }
             const initialBalance = parseCurrency(document.getElementById('initialBalance').value);
             const monthlySavings = parseCurrency(document.getElementById('monthlySavings').value);
-            const annualReturn = parseFloat(document.getElementById('annualReturn').value) / 100 || 0;
+            const annualReturn = parsePercent(document.getElementById('annualReturn').value) / 100 || 0;
             const monthlyWithdrawal = parseCurrency(document.getElementById('monthlyWithdrawal').value);
-            const houseAge = parseInt(document.getElementById('houseAge').value) || 0;
+            let houseAge = parseInt(document.getElementById('houseAge').value) || 0;
+
+            // House age can't be lower than current age
+            if (houseAge < currentAge) {
+                houseAge = currentAge;
+                document.getElementById('houseAge').value = houseAge;
+            }
             const housePrice = parseCurrency(document.getElementById('housePrice').value);
-            const downPayment = parseCurrency(document.getElementById('downPayment').value);
-            const mortgageRate = parseFloat(document.getElementById('mortgageRate').value) || 0;
+            let downPayment = parseCurrency(document.getElementById('downPayment').value);
+
+            // Cap down payment at house price
+            if (downPayment > housePrice) {
+                downPayment = housePrice;
+                document.getElementById('downPayment').value = formatCurrency(downPayment);
+            }
+            const mortgageRate = parsePercent(document.getElementById('mortgageRate').value) || 0;
             const mortgageTerm = parseInt(document.getElementById('mortgageTerm').value) || 0;
             const socialSecurity = parseCurrency(document.getElementById('socialSecurity').value);
             const ssAge = parseInt(document.getElementById('ssAge').value) || 0;
@@ -531,12 +644,16 @@
             let peakAge = currentAge;
             let brokeAge = null;
 
+            // If return is lower than mortgage rate, prioritize paying off mortgage
+            const prioritizeMortgage = annualReturn < (mortgageRate / 100);
+
             for (let age = currentAge; age <= endAge; age++) {
                 const year = currentYear + (age - currentAge);
                 let phase = '';
                 let cashIn = 0;
                 let cashOut = 0;
                 let mortgagePayment = 0;
+                let extraPrincipal = 0;
 
                 // Determine phase and cash flows
                 if (age < houseAge) {
@@ -550,7 +667,13 @@
                     mortgageStartYear = year;
                 } else if (age < retirementAge) {
                     phase = 'Save/Mortgage';
-                    cashIn = monthlySavings * 12;
+                    if (prioritizeMortgage && mortgageBalance > 0) {
+                        // Apply savings to mortgage instead
+                        extraPrincipal = Math.min(monthlySavings * 12, mortgageBalance);
+                        cashIn = (monthlySavings * 12) - extraPrincipal;
+                    } else {
+                        cashIn = monthlySavings * 12;
+                    }
                     if (mortgageBalance > 0) {
                         mortgagePayment = annualMortgage;
                     }
@@ -578,7 +701,7 @@
                 // Update mortgage balance
                 if (mortgageBalance > 0) {
                     const interestPaid = mortgageBalance * (mortgageRate / 100);
-                    const principalPaid = annualMortgage - interestPaid;
+                    const principalPaid = annualMortgage - interestPaid + extraPrincipal;
                     mortgageBalance = Math.max(0, mortgageBalance - principalPaid);
                 }
 
@@ -734,13 +857,17 @@
                 balanceChart.data.labels = labels;
                 balanceChart.data.datasets[0].data = data.map(d => d.startBalance);
                 balanceChart.data.datasets[1].data = data.map(d => d.endBalance);
+                const yMaxInput = document.getElementById('yAxisMax').value;
+                const yMaxValue = parseCurrency(yMaxInput);
+                balanceChart.options.scales.y.max = yMaxValue > 0 ? yMaxValue : undefined;
                 balanceChart.update('none'); // 'none' for instant, remove for animation
 
                 // Update Cash Flow Chart
                 cashFlowChart.data.labels = labels;
                 cashFlowChart.data.datasets[0].data = data.map(d => d.cashIn);
                 cashFlowChart.data.datasets[1].data = data.map(d => d.cashOut);
-                cashFlowChart.data.datasets[2].data = data.map(d => d.gains);
+                cashFlowChart.data.datasets[2].data = data.map(d => d.cashIn - d.cashOut - d.mortgagePayment);
+                cashFlowChart.data.datasets[3].data = data.map(d => d.gains);
                 cashFlowChart.update('none');
 
                 // Update Mortgage Chart
@@ -754,6 +881,11 @@
             // Chart 1: Portfolio Balance (Y-axis starts at 0)
             const balanceOptions = createChartOptions();
             balanceOptions.scales.y.min = 0;
+            const yMaxInput = document.getElementById('yAxisMax').value;
+            const yMaxValue = parseCurrency(yMaxInput);
+            if (yMaxValue > 0) {
+                balanceOptions.scales.y.max = yMaxValue;
+            }
 
             balanceChart = new Chart(document.getElementById('balanceChart').getContext('2d'), {
                 type: 'line',
@@ -803,6 +935,19 @@
                             borderColor: '#f85149',
                             borderWidth: 2,
                             fill: false,
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Net Cash Flow',
+                            data: data.map(d => d.cashIn - d.cashOut - d.mortgagePayment),
+                            borderColor: '#8b949e',
+                            backgroundColor: 'rgba(248, 81, 73, 0.25)',
+                            borderWidth: 2,
+                            fill: {
+                                target: 'origin',
+                                above: 'rgba(63, 185, 80, 0.15)',
+                                below: 'rgba(248, 81, 73, 0.25)'
+                            },
                             tension: 0.1
                         },
                         {
@@ -876,6 +1021,46 @@
             });
         });
 
+        // Save/Load from localStorage
+        const inputIds = [
+            'currentAge', 'retirementAge', 'initialBalance', 'monthlySavings',
+            'annualReturn', 'monthlyWithdrawal', 'houseAge', 'housePrice',
+            'downPayment', 'mortgageRate', 'mortgageTerm', 'socialSecurity',
+            'ssAge', 'yAxisMax'
+        ];
+
+        function saveToStorage() {
+            const data = {};
+            inputIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) data[id] = el.value;
+            });
+            localStorage.setItem('firePlannerData', JSON.stringify(data));
+        }
+
+        function loadFromStorage() {
+            const saved = localStorage.getItem('firePlannerData');
+            if (saved) {
+                const data = JSON.parse(saved);
+                inputIds.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el && data[id] !== undefined) el.value = data[id];
+                });
+            }
+        }
+
+        // Load saved values
+        loadFromStorage();
+
+        // Format currency inputs after loading
+        currencyInputs.forEach(id => {
+            const input = document.getElementById(id);
+            if (input) input.value = formatCurrency(input.value);
+        });
+
+        // Save on any input change
+        document.addEventListener('input', saveToStorage);
+
         // Run on page load
         calculate();
 
@@ -884,6 +1069,23 @@
             if (!currencyInputs.includes(input.id)) {
                 input.addEventListener('input', calculate);
             }
+        });
+
+        // Y-axis max input
+        const yMaxInput = document.getElementById('yAxisMax');
+        yMaxInput.addEventListener('input', calculate);
+        yMaxInput.addEventListener('focus', function() { this.select(); });
+        yMaxInput.addEventListener('blur', formatYMax);
+        formatYMax(); // Format on load
+
+        // Percent input formatting
+        const percentInputs = ['annualReturn', 'mortgageRate'];
+        percentInputs.forEach(id => {
+            const input = document.getElementById(id);
+            if (!input) return;
+            input.addEventListener('focus', function() { this.select(); });
+            input.addEventListener('blur', function() { this.value = formatPercent(this.value); });
+            input.addEventListener('input', calculate);
         });
     </script>
 </body>
