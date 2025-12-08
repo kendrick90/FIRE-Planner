@@ -925,6 +925,15 @@
                             </div>
                         </div>
                     </div>
+                    <div class="input-row">
+                        <label class="tooltip" data-tooltip="How to handle extra savings: Minimum = pay only required mortgage, Aggressive = prioritize paying off mortgage, Balanced = split extra 50/50">Extra Payment</label>
+                        <select id="mortgageStrategy" onchange="calculate()" style="width: 110px; padding: 6px 8px; border: 1px solid #30363d; border-radius: 4px; font-size: 14px; background: #0d1117; color: #e6edf3;">
+                            <option value="minimum">Minimum</option>
+                            <option value="balanced">Balanced</option>
+                            <option value="aggressive">Aggressive</option>
+                            <option value="auto" selected>Auto</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div class="input-section">
@@ -1056,7 +1065,7 @@
             'retirementExpenses', 'socialSecurity', 'ssAge', 'ssCola', 'yAxisMax', 'cashFlowYMax',
             'incomeGrowthRate', 'expenseGrowthRate', 'inflationRate', 'showRealDollars',
             'homeAppreciation', 'propertyTaxRate', 'maintenanceRate', 'homeownersInsurance',
-            'closingCostsRate'
+            'closingCostsRate', 'mortgageStrategy'
         ];
 
         const currencyInputs = [
@@ -1158,6 +1167,7 @@
             if (data.homeownersInsurance === undefined) data.homeownersInsurance = '$1,500';
             if (data.closingCostsRate === undefined) data.closingCostsRate = '3%';
             if (data.ssCola === undefined) data.ssCola = '2.5%';
+            if (data.mortgageStrategy === undefined) data.mortgageStrategy = 'auto';
             if (data.lifeExpectancy === undefined) data.lifeExpectancy = '75';
             if (data.showMortality === undefined) data.showMortality = 'true';
             // Migrate salary/tax - derive from existing monthlyIncome if not present
@@ -1212,6 +1222,7 @@
                 homeownersInsurance: '$1,500',
                 closingCostsRate: '3%',
                 ssCola: '2.5%',
+                mortgageStrategy: 'auto',
                 lifeExpectancy: '75',
                 showMortality: 'true'
             };
@@ -1840,7 +1851,13 @@
             let homeValue = 0;
             let totalInterestPaid = 0;
 
-            const prioritizeMortgage = annualReturn < (mortgageRate / 100);
+            // Mortgage payoff strategy
+            const mortgageStrategy = document.getElementById('mortgageStrategy').value;
+            const autoPrioritize = annualReturn < (mortgageRate / 100);
+            // auto = use interest rate comparison, aggressive = always pay extra, minimum = never pay extra, balanced = 50/50 split
+            const prioritizeMortgage = mortgageStrategy === 'auto' ? autoPrioritize :
+                                       mortgageStrategy === 'aggressive' ? true :
+                                       mortgageStrategy === 'minimum' ? false : false; // balanced handled separately
 
             for (let age = currentAge; age <= endAge; age++) {
                 const year = currentYear + (age - currentAge);
@@ -1912,12 +1929,18 @@
                         cashOut += annualExpenses + mortgagePayment + housingCosts;
                     }
 
-                    if (!isBuyYear && prioritizeMortgage && mortgageBalance > 0) {
+                    if (!isBuyYear && mortgageBalance > 0 && mortgageStrategy !== 'minimum') {
                         const interestThisYear = mortgageBalance * (mortgageRate / 100);
                         const regularPrincipal = Math.max(0, mortgagePayment - interestThisYear);
                         const remainingBalance = Math.max(0, mortgageBalance - regularPrincipal);
                         const netSavings = annualIncome - cashOut;
-                        extraPrincipal = Math.min(Math.max(0, netSavings), remainingBalance);
+                        if (mortgageStrategy === 'balanced') {
+                            // Split extra savings 50/50 between mortgage and investments
+                            extraPrincipal = Math.min(Math.max(0, netSavings * 0.5), remainingBalance);
+                        } else if (prioritizeMortgage) {
+                            // Aggressive or Auto (when mortgage rate > return): all extra to mortgage
+                            extraPrincipal = Math.min(Math.max(0, netSavings), remainingBalance);
+                        }
                         cashOut += extraPrincipal;
                     }
                 } else {
