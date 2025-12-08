@@ -1817,10 +1817,17 @@
                         bodyColor: '#e6edf3',
                         borderColor: '#30363d',
                         borderWidth: 1,
+                        boxPadding: 4,
                         callbacks: {
                             label: function(context) {
                                 return context.dataset.label + ': $' +
                                        Math.round(context.raw).toLocaleString();
+                            },
+                            labelColor: function(context) {
+                                return {
+                                    borderColor: context.dataset.borderColor,
+                                    backgroundColor: context.dataset.borderColor
+                                };
                             }
                         }
                     }
