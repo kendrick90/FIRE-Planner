@@ -140,6 +140,58 @@
             text-transform: uppercase;
             margin-bottom: 8px;
         }
+        /* Tooltip styles */
+        .tooltip {
+            position: relative;
+            cursor: help;
+        }
+        .tooltip::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #30363d;
+            color: #e6edf3;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: normal;
+            white-space: normal;
+            width: max-content;
+            max-width: 250px;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s, visibility 0.2s;
+            z-index: 1000;
+            text-transform: none;
+            line-height: 1.4;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            pointer-events: none;
+        }
+        .tooltip:hover::after {
+            opacity: 1;
+            visibility: visible;
+        }
+        .tooltip-right::after {
+            left: 100%;
+            bottom: 50%;
+            transform: translateY(50%);
+            margin-left: 8px;
+        }
+        .help-icon {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            background: #30363d;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 14px;
+            font-size: 10px;
+            color: #8b949e;
+            margin-left: 4px;
+            cursor: help;
+        }
         .chart-panel {
             background: #161b22;
             border-radius: 8px;
@@ -228,7 +280,7 @@
         .phase-ss { color: #39d353; }
         .summary-cards {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 16px;
             margin-bottom: 20px;
         }
@@ -516,6 +568,14 @@
             0%, 100% { box-shadow: 0 0 0 0 rgba(35, 134, 54, 0.4); }
             50% { box-shadow: 0 0 0 4px rgba(35, 134, 54, 0); }
         }
+
+        /* Checkbox styling */
+        .input-row input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #238636;
+        }
     </style>
 </head>
 <body>
@@ -602,7 +662,7 @@
                 <div class="input-section">
                     <div class="input-section-title">Personal</div>
                     <div class="input-row">
-                        <label>Current Age</label>
+                        <label class="tooltip" data-tooltip="Your age today. This is the starting point for all projections.">Current Age</label>
                         <div class="input-with-buttons">
                             <input type="number" id="currentAge" value="18">
                             <div class="btn-group">
@@ -612,7 +672,7 @@
                         </div>
                     </div>
                     <div class="input-row">
-                        <label>Retirement Age</label>
+                        <label class="tooltip" data-tooltip="Age when you stop working and begin living off savings. Income stops, retirement expenses begin.">Retirement Age</label>
                         <div class="input-with-buttons">
                             <input type="number" id="retirementAge" value="38">
                             <div class="btn-group">
@@ -621,22 +681,66 @@
                             </div>
                         </div>
                     </div>
+                    <div class="input-row">
+                        <label class="tooltip" data-tooltip="Used for mortality probability shading on the chart. Plan for longer than expected!">Life Expectancy</label>
+                        <div class="input-with-buttons">
+                            <input type="number" id="lifeExpectancy" value="75">
+                            <div class="btn-group">
+                                <button class="inc-btn" onclick="adjustNum('lifeExpectancy', 1)">+</button>
+                                <button class="inc-btn" onclick="adjustNum('lifeExpectancy', -1)">−</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="input-row">
+                        <label class="tooltip" data-tooltip="Show shaded mortality probability bands on the portfolio chart">Show Mortality</label>
+                        <input type="checkbox" id="showMortality" checked onchange="calculate()">
+                    </div>
                 </div>
 
                 <div class="input-section">
                     <div class="input-section-title">Income</div>
                     <div class="input-row">
-                        <label>Monthly Income</label>
+                        <label class="tooltip" data-tooltip="Your gross annual salary before taxes">Annual Salary</label>
                         <div class="input-with-buttons">
-                            <input type="text" id="monthlyIncome" value="8000">
+                            <input type="text" id="annualSalary" value="$130,000" oninput="syncSalaryToIncome()">
                             <div class="btn-group">
-                                <button class="inc-btn" onclick="adjustValue('monthlyIncome', 500)">+</button>
-                                <button class="inc-btn" onclick="adjustValue('monthlyIncome', -500)">−</button>
+                                <button class="inc-btn" onclick="adjustSalary(5000)">+</button>
+                                <button class="inc-btn" onclick="adjustSalary(-5000)">−</button>
                             </div>
                         </div>
                     </div>
                     <div class="input-row">
-                        <label>Monthly Rent</label>
+                        <label class="tooltip" data-tooltip="Combined federal, state, and local tax rate applied to your salary">Tax Rate</label>
+                        <div class="input-with-buttons">
+                            <input type="text" id="taxRate" value="26%" oninput="syncSalaryToIncome()">
+                            <div class="btn-group">
+                                <button class="inc-btn" onclick="adjustPercent('taxRate', 1)">+</button>
+                                <button class="inc-btn" onclick="adjustPercent('taxRate', -1)">−</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="input-row">
+                        <label class="tooltip" data-tooltip="Take-home pay after taxes: Salary × (1 - Tax Rate) ÷ 12">Monthly Income</label>
+                        <div class="input-with-buttons">
+                            <input type="text" id="monthlyIncome" value="$8,000" oninput="syncIncomeToSalary()">
+                            <div class="btn-group">
+                                <button class="inc-btn" onclick="adjustMonthlyIncome(500)">+</button>
+                                <button class="inc-btn" onclick="adjustMonthlyIncome(-500)">−</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="input-row">
+                        <label class="tooltip" data-tooltip="Equivalent hourly rate based on 2,080 work hours/year (40 hrs × 52 weeks)">Hourly Wage</label>
+                        <div class="input-with-buttons">
+                            <input type="text" id="hourlyWage" value="$62.50" oninput="syncHourlyToSalary()">
+                            <div class="btn-group">
+                                <button class="inc-btn" onclick="adjustHourlyWage(5)">+</button>
+                                <button class="inc-btn" onclick="adjustHourlyWage(-5)">−</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="input-row">
+                        <label class="tooltip" data-tooltip="Monthly rent payment before buying a house. Grows with expense growth rate.">Monthly Rent</label>
                         <div class="input-with-buttons">
                             <input type="text" id="monthlyRent" value="2000">
                             <div class="btn-group">
@@ -646,7 +750,7 @@
                         </div>
                     </div>
                     <div class="input-row">
-                        <label>Monthly Expenses</label>
+                        <label class="tooltip" data-tooltip="Non-housing monthly expenses (food, utilities, transport, etc.). Grows with expense growth rate.">Monthly Expenses</label>
                         <div class="input-with-buttons">
                             <input type="text" id="monthlyExpenses" value="2000">
                             <div class="btn-group">
@@ -660,7 +764,7 @@
                 <div class="input-section">
                     <div class="input-section-title">Savings & Returns</div>
                     <div class="input-row">
-                        <label>Initial Balance</label>
+                        <label class="tooltip" data-tooltip="Your current investment portfolio balance (401k, IRA, brokerage, etc.)">Initial Balance</label>
                         <div class="input-with-buttons">
                             <input type="text" id="initialBalance" value="1000">
                             <div class="btn-group">
@@ -670,7 +774,7 @@
                         </div>
                     </div>
                     <div class="input-row">
-                        <label>Annual Return</label>
+                        <label class="tooltip" data-tooltip="Expected annual investment return. Historical S&P 500 averages ~7% after inflation, ~10% nominal.">Annual Return</label>
                         <div class="input-with-buttons">
                             <input type="text" id="annualReturn" value="5%">
                             <div class="btn-group">
@@ -682,9 +786,47 @@
                 </div>
 
                 <div class="input-section">
+                    <div class="input-section-title">Growth Rates</div>
+                    <div class="input-row">
+                        <label class="tooltip" data-tooltip="Annual salary increase rate. Typical range: 2-5% per year.">Income Growth</label>
+                        <div class="input-with-buttons">
+                            <input type="text" id="incomeGrowthRate" value="3%">
+                            <div class="btn-group">
+                                <button class="inc-btn" onclick="adjustPercent('incomeGrowthRate', 0.5)">+</button>
+                                <button class="inc-btn" onclick="adjustPercent('incomeGrowthRate', -0.5)">−</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="input-row">
+                        <label class="tooltip" data-tooltip="Annual increase in expenses, rent, and retirement costs. Usually tracks inflation.">Expense Growth</label>
+                        <div class="input-with-buttons">
+                            <input type="text" id="expenseGrowthRate" value="2%">
+                            <div class="btn-group">
+                                <button class="inc-btn" onclick="adjustPercent('expenseGrowthRate', 0.5)">+</button>
+                                <button class="inc-btn" onclick="adjustPercent('expenseGrowthRate', -0.5)">−</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="input-row">
+                        <label class="tooltip" data-tooltip="General price inflation rate. Used for 'Show Real $' calculations. Historical US average: ~2-3%.">Inflation Rate</label>
+                        <div class="input-with-buttons">
+                            <input type="text" id="inflationRate" value="2.5%">
+                            <div class="btn-group">
+                                <button class="inc-btn" onclick="adjustPercent('inflationRate', 0.5)">+</button>
+                                <button class="inc-btn" onclick="adjustPercent('inflationRate', -0.5)">−</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="input-row">
+                        <label class="tooltip" data-tooltip="Display all values in today's purchasing power, adjusted for inflation">Show Real $</label>
+                        <input type="checkbox" id="showRealDollars" onchange="calculate()">
+                    </div>
+                </div>
+
+                <div class="input-section">
                     <div class="input-section-title">Home Purchase</div>
                     <div class="input-row">
-                        <label>House Purchase Age</label>
+                        <label class="tooltip" data-tooltip="Age when you buy a house. Set beyond 100 to never buy. Rent stops, mortgage/housing costs begin.">House Purchase Age</label>
                         <div class="input-with-buttons">
                             <input type="number" id="houseAge" value="30">
                             <div class="btn-group">
@@ -694,7 +836,7 @@
                         </div>
                     </div>
                     <div class="input-row">
-                        <label>House Price</label>
+                        <label class="tooltip" data-tooltip="Purchase price of the home">House Price</label>
                         <div class="input-with-buttons">
                             <input type="text" id="housePrice" value="500000">
                             <div class="btn-group">
@@ -704,7 +846,7 @@
                         </div>
                     </div>
                     <div class="input-row">
-                        <label>Down Payment</label>
+                        <label class="tooltip" data-tooltip="Cash paid upfront. Mortgage = House Price - Down Payment. Limited by available funds.">Down Payment</label>
                         <div class="input-with-buttons">
                             <input type="text" id="downPayment" value="100000">
                             <div class="btn-group">
@@ -714,7 +856,7 @@
                         </div>
                     </div>
                     <div class="input-row">
-                        <label>Mortgage Rate</label>
+                        <label class="tooltip" data-tooltip="Annual mortgage interest rate. If lower than investment return, extra cash goes to investments instead of early payoff.">Mortgage Rate</label>
                         <div class="input-with-buttons">
                             <input type="text" id="mortgageRate" value="6%">
                             <div class="btn-group">
@@ -724,7 +866,7 @@
                         </div>
                     </div>
                     <div class="input-row">
-                        <label>Mortgage Term (yrs)</label>
+                        <label class="tooltip" data-tooltip="Loan duration in years. Common terms: 15 or 30 years.">Mortgage Term (yrs)</label>
                         <div class="input-with-buttons">
                             <input type="number" id="mortgageTerm" value="30">
                             <div class="btn-group">
@@ -733,12 +875,62 @@
                             </div>
                         </div>
                     </div>
+                    <div class="input-row">
+                        <label class="tooltip" data-tooltip="Annual home value increase. Historical US average: ~3-4%.">Home Appreciation</label>
+                        <div class="input-with-buttons">
+                            <input type="text" id="homeAppreciation" value="3%">
+                            <div class="btn-group">
+                                <button class="inc-btn" onclick="adjustPercent('homeAppreciation', 0.5)">+</button>
+                                <button class="inc-btn" onclick="adjustPercent('homeAppreciation', -0.5)">−</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="input-row">
+                        <label class="tooltip" data-tooltip="Annual property tax as % of home value. Varies by location: 0.3% (Hawaii) to 2.5% (NJ).">Property Tax %</label>
+                        <div class="input-with-buttons">
+                            <input type="text" id="propertyTaxRate" value="1.2%">
+                            <div class="btn-group">
+                                <button class="inc-btn" onclick="adjustPercent('propertyTaxRate', 0.1)">+</button>
+                                <button class="inc-btn" onclick="adjustPercent('propertyTaxRate', -0.1)">−</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="input-row">
+                        <label class="tooltip" data-tooltip="Annual maintenance/repairs as % of home value. Rule of thumb: 1-2% per year.">Maintenance %</label>
+                        <div class="input-with-buttons">
+                            <input type="text" id="maintenanceRate" value="1%">
+                            <div class="btn-group">
+                                <button class="inc-btn" onclick="adjustPercent('maintenanceRate', 0.25)">+</button>
+                                <button class="inc-btn" onclick="adjustPercent('maintenanceRate', -0.25)">−</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="input-row">
+                        <label class="tooltip" data-tooltip="Annual homeowners insurance premium. Varies by location and coverage.">Home Insurance</label>
+                        <div class="input-with-buttons">
+                            <input type="text" id="homeownersInsurance" value="$1,500">
+                            <div class="btn-group">
+                                <button class="inc-btn" onclick="adjustValue('homeownersInsurance', 100)">+</button>
+                                <button class="inc-btn" onclick="adjustValue('homeownersInsurance', -100)">−</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="input-row">
+                        <label class="tooltip" data-tooltip="One-time costs at purchase (title, appraisal, fees, etc.). Typically 2-5% of home price.">Closing Costs %</label>
+                        <div class="input-with-buttons">
+                            <input type="text" id="closingCostsRate" value="3%">
+                            <div class="btn-group">
+                                <button class="inc-btn" onclick="adjustPercent('closingCostsRate', 0.5)">+</button>
+                                <button class="inc-btn" onclick="adjustPercent('closingCostsRate', -0.5)">−</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="input-section">
                     <div class="input-section-title">Retirement</div>
                     <div class="input-row">
-                        <label>Retirement Expenses</label>
+                        <label class="tooltip" data-tooltip="Monthly spending in retirement (excluding housing costs if you own). Grows with expense growth rate.">Retirement Expenses</label>
                         <div class="input-with-buttons">
                             <input type="text" id="retirementExpenses" value="4000">
                             <div class="btn-group">
@@ -748,7 +940,7 @@
                         </div>
                     </div>
                     <div class="input-row">
-                        <label>Annual SS Benefit</label>
+                        <label class="tooltip" data-tooltip="Annual Social Security benefit at start age. Check ssa.gov for your estimate.">Annual SS Benefit</label>
                         <div class="input-with-buttons">
                             <input type="text" id="socialSecurity" value="24000">
                             <div class="btn-group">
@@ -758,12 +950,22 @@
                         </div>
                     </div>
                     <div class="input-row">
-                        <label>SS Start Age</label>
+                        <label class="tooltip" data-tooltip="Age when SS benefits begin. Options: 62 (reduced), 67 (full), 70 (maximum).">SS Start Age</label>
                         <div class="input-with-buttons">
                             <input type="number" id="ssAge" value="62">
                             <div class="btn-group">
                                 <button class="inc-btn" onclick="adjustNum('ssAge', 1)">+</button>
                                 <button class="inc-btn" onclick="adjustNum('ssAge', -1)">−</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="input-row">
+                        <label class="tooltip" data-tooltip="Cost-of-Living Adjustment: annual SS benefit increase. Historical average: ~2-3%.">SS COLA</label>
+                        <div class="input-with-buttons">
+                            <input type="text" id="ssCola" value="2.5%">
+                            <div class="btn-group">
+                                <button class="inc-btn" onclick="adjustPercent('ssCola', 0.25)">+</button>
+                                <button class="inc-btn" onclick="adjustPercent('ssCola', -0.25)">−</button>
                             </div>
                         </div>
                     </div>
@@ -830,6 +1032,8 @@
                             <th>End Balance</th>
                             <th>Mortgage Pmt</th>
                             <th>Mortgage Bal</th>
+                            <th>Home Value</th>
+                            <th>Housing Costs</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody"></tbody>
@@ -843,17 +1047,28 @@
         let cashFlowChart = null;
         let mortgageChart = null;
 
-        // Input field IDs (moved to top for scenario management)
+        // Input field IDs
         const inputIds = [
-            'currentAge', 'retirementAge', 'monthlyIncome', 'monthlyRent',
+            'currentAge', 'retirementAge', 'lifeExpectancy', 'showMortality',
+            'annualSalary', 'taxRate', 'monthlyIncome', 'monthlyRent',
             'monthlyExpenses', 'initialBalance', 'annualReturn', 'houseAge',
             'housePrice', 'downPayment', 'mortgageRate', 'mortgageTerm',
-            'retirementExpenses', 'socialSecurity', 'ssAge', 'yAxisMax', 'cashFlowYMax'
+            'retirementExpenses', 'socialSecurity', 'ssAge', 'ssCola', 'yAxisMax', 'cashFlowYMax',
+            'incomeGrowthRate', 'expenseGrowthRate', 'inflationRate', 'showRealDollars',
+            'homeAppreciation', 'propertyTaxRate', 'maintenanceRate', 'homeownersInsurance',
+            'closingCostsRate'
         ];
 
         const currencyInputs = [
             'monthlyIncome', 'monthlyRent', 'monthlyExpenses', 'initialBalance',
-            'housePrice', 'downPayment', 'retirementExpenses', 'socialSecurity'
+            'housePrice', 'downPayment', 'retirementExpenses', 'socialSecurity',
+            'homeownersInsurance'
+        ];
+
+        const percentInputs = [
+            'annualReturn', 'mortgageRate', 'incomeGrowthRate', 'expenseGrowthRate',
+            'inflationRate', 'homeAppreciation', 'propertyTaxRate', 'maintenanceRate',
+            'closingCostsRate', 'ssCola'
         ];
 
         // ========== SCENARIO MANAGEMENT SYSTEM ==========
@@ -863,47 +1078,52 @@
         let hasUnsavedChanges = false;
         let isLoadingScenario = false;
 
-        // Generate unique ID
         function generateId() {
             return Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
         }
 
-        // Get all scenarios from storage
         function getScenarios() {
             const saved = localStorage.getItem(SCENARIOS_KEY);
             return saved ? JSON.parse(saved) : {};
         }
 
-        // Save all scenarios to storage
         function saveScenarios(scenarios) {
             localStorage.setItem(SCENARIOS_KEY, JSON.stringify(scenarios));
         }
 
-        // Get current input values as an object
         function getCurrentInputValues() {
             const data = {};
             inputIds.forEach(id => {
                 const el = document.getElementById(id);
-                if (el) data[id] = el.value;
+                if (el) {
+                    if (el.type === 'checkbox') {
+                        data[id] = el.checked.toString();
+                    } else {
+                        data[id] = el.value;
+                    }
+                }
             });
             return data;
         }
 
-        // Set input values from an object
         function setInputValues(data) {
             inputIds.forEach(id => {
                 const el = document.getElementById(id);
-                if (el && data[id] !== undefined) el.value = data[id];
+                if (el && data[id] !== undefined) {
+                    if (el.type === 'checkbox') {
+                        el.checked = data[id] === 'true';
+                    } else {
+                        el.value = data[id];
+                    }
+                }
             });
         }
 
-        // Format date for display
         function formatDate(timestamp) {
             const date = new Date(timestamp);
             return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         }
 
-        // Update the scenario dropdown
         function updateScenarioDropdown() {
             const select = document.getElementById('scenarioSelect');
             const scenarios = getScenarios();
@@ -916,7 +1136,6 @@
             updateScenarioMeta();
         }
 
-        // Update scenario metadata display
         function updateScenarioMeta() {
             const meta = document.getElementById('scenarioMeta');
             const scenarios = getScenarios();
@@ -928,7 +1147,30 @@
             }
         }
 
-        // Create a new scenario (with optional unsaved changes check)
+        function migrateScenarioData(data) {
+            if (data.incomeGrowthRate === undefined) data.incomeGrowthRate = '3%';
+            if (data.expenseGrowthRate === undefined) data.expenseGrowthRate = '2%';
+            if (data.inflationRate === undefined) data.inflationRate = '2.5%';
+            if (data.showRealDollars === undefined) data.showRealDollars = 'false';
+            if (data.homeAppreciation === undefined) data.homeAppreciation = '3%';
+            if (data.propertyTaxRate === undefined) data.propertyTaxRate = '1.2%';
+            if (data.maintenanceRate === undefined) data.maintenanceRate = '1%';
+            if (data.homeownersInsurance === undefined) data.homeownersInsurance = '$1,500';
+            if (data.closingCostsRate === undefined) data.closingCostsRate = '3%';
+            if (data.ssCola === undefined) data.ssCola = '2.5%';
+            if (data.lifeExpectancy === undefined) data.lifeExpectancy = '75';
+            if (data.showMortality === undefined) data.showMortality = 'true';
+            // Migrate salary/tax - derive from existing monthlyIncome if not present
+            if (data.annualSalary === undefined || data.taxRate === undefined) {
+                const monthlyIncome = parseFloat((data.monthlyIncome || '$8,000').toString().replace(/[^0-9.-]/g, '')) || 8000;
+                const defaultTaxRate = 0.26;
+                const annualSalary = Math.round((monthlyIncome * 12) / (1 - defaultTaxRate));
+                data.annualSalary = '$' + annualSalary.toLocaleString('en-US');
+                data.taxRate = '26%';
+            }
+            return data;
+        }
+
         function createNewScenario(name = null, data = null, skipUnsavedCheck = false) {
             if (!skipUnsavedCheck && hasUnsavedChanges) {
                 if (!confirm('You have unsaved changes. Discard them and create a new scenario?')) {
@@ -940,10 +1182,11 @@
             const id = generateId();
             const now = Date.now();
 
-            // Default values for a new scenario
             const defaultData = {
                 currentAge: '18',
                 retirementAge: '38',
+                annualSalary: '$130,000',
+                taxRate: '26%',
                 monthlyIncome: '$8,000',
                 monthlyRent: '$2,000',
                 monthlyExpenses: '$2,000',
@@ -958,10 +1201,21 @@
                 socialSecurity: '$24,000',
                 ssAge: '62',
                 yAxisMax: '$2,000,000',
-                cashFlowYMax: '$200,000'
+                cashFlowYMax: '$200,000',
+                incomeGrowthRate: '3%',
+                expenseGrowthRate: '2%',
+                inflationRate: '2.5%',
+                showRealDollars: 'false',
+                homeAppreciation: '3%',
+                propertyTaxRate: '1.2%',
+                maintenanceRate: '1%',
+                homeownersInsurance: '$1,500',
+                closingCostsRate: '3%',
+                ssCola: '2.5%',
+                lifeExpectancy: '75',
+                showMortality: 'true'
             };
 
-            // Generate unique name
             let baseName = name || 'New Scenario';
             let finalName = baseName;
             let counter = 1;
@@ -994,7 +1248,6 @@
             return id;
         }
 
-        // Load a scenario by ID
         function loadScenario(id) {
             const scenarios = getScenarios();
             if (!scenarios[id]) return;
@@ -1004,9 +1257,11 @@
             currentScenarioId = id;
             localStorage.setItem(CURRENT_SCENARIO_KEY, id);
 
+            scenarios[id].data = migrateScenarioData(scenarios[id].data);
+            saveScenarios(scenarios);
+
             setInputValues(scenarios[id].data);
 
-            // Re-format currency inputs after loading
             currencyInputs.forEach(cid => {
                 const input = document.getElementById(cid);
                 if (input) input.value = formatCurrency(input.value);
@@ -1014,12 +1269,12 @@
 
             updateScenarioMeta();
             calculate();
+            updateHourlyWage();
 
             isLoadingScenario = false;
             clearUnsavedChanges();
         }
 
-        // Save current scenario
         function saveCurrentScenario() {
             if (!currentScenarioId) return;
 
@@ -1033,7 +1288,6 @@
             updateScenarioMeta();
         }
 
-        // Duplicate current scenario
         function duplicateScenario() {
             if (hasUnsavedChanges) {
                 if (!confirm('You have unsaved changes. Discard them and duplicate the saved version?')) {
@@ -1049,7 +1303,6 @@
             createNewScenario(current.name + ' (Copy)', { ...current.data }, true);
         }
 
-        // Show rename modal
         function showRenameModal() {
             const scenarios = getScenarios();
             const current = scenarios[currentScenarioId];
@@ -1061,7 +1314,6 @@
             document.getElementById('renameInput').select();
         }
 
-        // Confirm rename
         function confirmRename() {
             const newName = document.getElementById('renameInput').value.trim();
             if (!newName) {
@@ -1081,13 +1333,11 @@
             showToast('Scenario renamed', 'success');
         }
 
-        // Show delete modal
         function showDeleteModal() {
             const scenarios = getScenarios();
             const current = scenarios[currentScenarioId];
             if (!current) return;
 
-            // Don't allow deleting the last scenario
             if (Object.keys(scenarios).length <= 1) {
                 showToast('Cannot delete the only scenario', 'error');
                 return;
@@ -1097,7 +1347,6 @@
             document.getElementById('deleteModal').classList.add('active');
         }
 
-        // Confirm delete
         function confirmDelete() {
             const scenarios = getScenarios();
             if (!scenarios[currentScenarioId]) return;
@@ -1106,7 +1355,6 @@
             delete scenarios[currentScenarioId];
             saveScenarios(scenarios);
 
-            // Switch to another scenario
             const remaining = Object.values(scenarios).sort((a, b) => b.lastModified - a.lastModified);
             if (remaining.length > 0) {
                 loadScenario(remaining[0].id);
@@ -1117,19 +1365,16 @@
             showToast(`Deleted "${deletedName}"`, 'success');
         }
 
-        // Close modal
         function closeModal(modalId) {
             document.getElementById(modalId).classList.remove('active');
         }
 
-        // Close modal on overlay click
         function closeModalOnOverlay(event, modalId) {
             if (event.target.classList.contains('modal-overlay')) {
                 closeModal(modalId);
             }
         }
 
-        // Show toast notification
         function showToast(message, type = 'success') {
             const toast = document.getElementById('toast');
             toast.textContent = message;
@@ -1141,13 +1386,12 @@
             }, 3000);
         }
 
-        // Export all scenarios
         function exportScenarios() {
             const scenarios = getScenarios();
             const currentScenario = scenarios[currentScenarioId];
             const scenarioName = currentScenario ? currentScenario.name.replace(/[^a-z0-9]/gi, '-').toLowerCase() : 'scenarios';
             const exportData = {
-                version: 1,
+                version: 2,
                 exportDate: new Date().toISOString(),
                 currentScenarioId,
                 scenarios
@@ -1166,7 +1410,6 @@
             showToast(`Exported ${Object.keys(scenarios).length} scenario(s)`, 'success');
         }
 
-        // Import scenarios
         function importScenarios(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -1183,12 +1426,10 @@
                     const scenarios = getScenarios();
                     let importCount = 0;
 
-                    // Import each scenario with a new ID to avoid conflicts
                     Object.values(importData.scenarios).forEach(scenario => {
                         const newId = generateId();
                         let name = scenario.name;
 
-                        // Check for name conflicts and rename if necessary
                         const existingNames = Object.values(scenarios).map(s => s.name);
                         let counter = 1;
                         while (existingNames.includes(name)) {
@@ -1199,7 +1440,8 @@
                         scenarios[newId] = {
                             ...scenario,
                             id: newId,
-                            name
+                            name,
+                            data: migrateScenarioData({ ...scenario.data })
                         };
                         importCount++;
                     });
@@ -1211,35 +1453,28 @@
                     showToast('Failed to import: Invalid file', 'error');
                 }
 
-                // Reset file input
                 event.target.value = '';
             };
             reader.readAsText(file);
         }
 
-        // Migrate from old format (single scenario) to new format
         function migrateFromOldFormat() {
             const scenarios = getScenarios();
 
-            // If we already have scenarios, check for old data to migrate
             if (Object.keys(scenarios).length === 0) {
                 const oldData = localStorage.getItem('firePlannerData');
                 if (oldData) {
-                    // Migrate old data
-                    const data = JSON.parse(oldData);
+                    const data = migrateScenarioData(JSON.parse(oldData));
                     createNewScenario('My First Scenario', data, true);
-                    localStorage.removeItem('firePlannerData'); // Clean up old key
+                    localStorage.removeItem('firePlannerData');
                 } else {
-                    // No data at all, create default scenario
                     createNewScenario('My First Scenario', null, true);
                 }
             } else {
-                // Load the last used scenario
                 const savedCurrentId = localStorage.getItem(CURRENT_SCENARIO_KEY);
                 if (savedCurrentId && scenarios[savedCurrentId]) {
                     loadScenario(savedCurrentId);
                 } else {
-                    // Load most recently modified
                     const sorted = Object.values(scenarios).sort((a, b) => b.lastModified - a.lastModified);
                     if (sorted.length > 0) {
                         loadScenario(sorted[0].id);
@@ -1249,7 +1484,6 @@
             }
         }
 
-        // Close modals with Escape key
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 closeModal('renameModal');
@@ -1257,22 +1491,19 @@
             }
         });
 
-        // Mark that there are unsaved changes
         function markUnsavedChanges() {
-            if (isLoadingScenario) return; // Don't mark changes while loading
+            if (isLoadingScenario) return;
             if (!hasUnsavedChanges) {
                 hasUnsavedChanges = true;
                 updateUnsavedIndicator();
             }
         }
 
-        // Clear unsaved changes flag
         function clearUnsavedChanges() {
             hasUnsavedChanges = false;
             updateUnsavedIndicator();
         }
 
-        // Update the UI to show unsaved changes
         function updateUnsavedIndicator() {
             const saveBtn = document.getElementById('saveBtn');
             const indicator = document.getElementById('unsavedIndicator');
@@ -1286,18 +1517,15 @@
             }
         }
 
-        // Save button click handler
         function saveScenario() {
             saveCurrentScenario();
             clearUnsavedChanges();
             showToast('Scenario saved', 'success');
         }
 
-        // Check for unsaved changes before switching scenarios
         function confirmSwitchScenario(newId) {
             if (hasUnsavedChanges) {
                 if (!confirm('You have unsaved changes. Discard them and switch scenarios?')) {
-                    // Reset dropdown to current scenario
                     document.getElementById('scenarioSelect').value = currentScenarioId;
                     return;
                 }
@@ -1306,7 +1534,6 @@
             loadScenario(newId);
         }
 
-        // Warn before leaving page with unsaved changes
         window.addEventListener('beforeunload', (e) => {
             if (hasUnsavedChanges) {
                 e.preventDefault();
@@ -1326,12 +1553,20 @@
             return parseFloat(value.toString().replace(/[^0-9.-]/g, '')) || 0;
         }
 
+        // Mortality probability using normal distribution
+        function calculateMortalityProbability(age, lifeExpectancy, stdDev = 10) {
+            // Normal distribution probability density function
+            const exponent = -Math.pow(age - lifeExpectancy, 2) / (2 * Math.pow(stdDev, 2));
+            const probability = (1 / (stdDev * Math.sqrt(2 * Math.PI))) * Math.exp(exponent);
+            // Scale to percentage (multiply by stdDev to normalize peak to ~0.4, then scale to ~100%)
+            return probability * stdDev * Math.sqrt(2 * Math.PI) * 100;
+        }
+
         function adjustValue(id, amount) {
             const input = document.getElementById(id);
             const currentValue = parseCurrency(input.value);
             let newValue = Math.max(0, currentValue + amount);
 
-            // Down payment can't exceed house price
             if (id === 'downPayment') {
                 const housePrice = parseCurrency(document.getElementById('housePrice').value);
                 newValue = Math.min(newValue, housePrice);
@@ -1347,7 +1582,6 @@
             const currentValue = parseFloat(input.value) || 0;
             let newValue = Math.max(0, currentValue + amount);
 
-            // House age and retirement age can't be lower than current age
             if (id === 'houseAge' || id === 'retirementAge') {
                 const currentAge = parseInt(document.getElementById('currentAge').value) || 0;
                 newValue = Math.max(currentAge, newValue);
@@ -1374,14 +1608,91 @@
             const newValue = Math.max(0, currentValue + amount);
             input.value = formatPercent(newValue);
             markUnsavedChanges();
+            if (id === 'taxRate') {
+                syncSalaryToIncome();
+            } else {
+                calculate();
+            }
+        }
+
+        // Salary/Income sync functions
+        function formatHourlyWage(value) {
+            // Format to 2 decimal places with dollar sign
+            return '$' + value.toFixed(2);
+        }
+
+        function updateHourlyWage() {
+            const salary = parseCurrency(document.getElementById('annualSalary').value);
+            // Assuming 2080 hours/year (40 hours/week * 52 weeks)
+            const hourlyWage = salary / 2080;
+            document.getElementById('hourlyWage').value = formatHourlyWage(hourlyWage);
+        }
+
+        function syncHourlyToSalary() {
+            const hourlyWage = parseCurrency(document.getElementById('hourlyWage').value);
+            const annualSalary = Math.round(hourlyWage * 2080);
+            const taxRate = parsePercent(document.getElementById('taxRate').value) / 100;
+            const monthlyIncome = Math.round((annualSalary * (1 - taxRate)) / 12);
+            document.getElementById('annualSalary').value = formatCurrency(annualSalary);
+            document.getElementById('monthlyIncome').value = formatCurrency(monthlyIncome);
+            markUnsavedChanges();
             calculate();
+        }
+
+        function adjustHourlyWage(amount) {
+            const input = document.getElementById('hourlyWage');
+            const currentValue = parseCurrency(input.value);
+            // Round to nearest increment for nice values
+            const rounded = Math.round(currentValue / Math.abs(amount)) * Math.abs(amount);
+            const newValue = Math.max(0, rounded + amount);
+            input.value = formatHourlyWage(newValue);
+            syncHourlyToSalary();
+        }
+
+        function syncSalaryToIncome() {
+            const salary = parseCurrency(document.getElementById('annualSalary').value);
+            const taxRate = parsePercent(document.getElementById('taxRate').value) / 100;
+            const monthlyIncome = Math.round((salary * (1 - taxRate)) / 12);
+            document.getElementById('monthlyIncome').value = formatCurrency(monthlyIncome);
+            updateHourlyWage();
+            markUnsavedChanges();
+            calculate();
+        }
+
+        function syncIncomeToSalary() {
+            const monthlyIncome = parseCurrency(document.getElementById('monthlyIncome').value);
+            const taxRate = parsePercent(document.getElementById('taxRate').value) / 100;
+            const annualSalary = Math.round((monthlyIncome * 12) / (1 - taxRate));
+            document.getElementById('annualSalary').value = formatCurrency(annualSalary);
+            updateHourlyWage();
+            markUnsavedChanges();
+            calculate();
+        }
+
+        function adjustSalary(amount) {
+            const input = document.getElementById('annualSalary');
+            const currentValue = parseCurrency(input.value);
+            // Round to nearest increment for nice values
+            const rounded = Math.round(currentValue / Math.abs(amount)) * Math.abs(amount);
+            const newValue = Math.max(0, rounded + amount);
+            input.value = formatCurrency(newValue);
+            syncSalaryToIncome();
+        }
+
+        function adjustMonthlyIncome(amount) {
+            const input = document.getElementById('monthlyIncome');
+            const currentValue = parseCurrency(input.value);
+            // Round to nearest increment for nice values
+            const rounded = Math.round(currentValue / Math.abs(amount)) * Math.abs(amount);
+            const newValue = Math.max(0, rounded + amount);
+            input.value = formatCurrency(newValue);
+            syncIncomeToSalary();
         }
 
         function adjustYMax(direction) {
             const input = document.getElementById('yAxisMax');
             const currentValue = parseCurrency(input.value) || 500000;
 
-            // Smart step based on current value
             let step;
             if (currentValue < 100000) step = 25000;
             else if (currentValue < 500000) step = 50000;
@@ -1405,7 +1716,6 @@
             const input = document.getElementById('cashFlowYMax');
             const currentValue = parseCurrency(input.value) || 100000;
 
-            // Smart step based on current value
             let step;
             if (currentValue < 50000) step = 10000;
             else if (currentValue < 100000) step = 25000;
@@ -1430,7 +1740,7 @@
             if (val > 0) input.value = formatCurrency(val);
         }
 
-        // Hold-to-repeat functionality for +/- buttons
+        // Hold-to-repeat functionality
         let holdInterval = null;
         let holdTimeout = null;
 
@@ -1441,7 +1751,6 @@
             const onclick = btn.getAttribute('onclick');
             const func = () => eval(onclick);
 
-            // Initial delay before repeating
             holdTimeout = setTimeout(() => {
                 holdInterval = setInterval(func, 75);
             }, 400);
@@ -1470,17 +1779,14 @@
         }
 
         function calculate() {
-            // Get inputs (use getValue for currency fields)
             const currentAge = parseInt(document.getElementById('currentAge').value) || 0;
             let retirementAge = parseInt(document.getElementById('retirementAge').value) || 0;
 
-            // Retirement age can't be lower than current age
             if (retirementAge < currentAge) {
                 retirementAge = currentAge;
                 document.getElementById('retirementAge').value = retirementAge;
             }
 
-            // Income and expenses
             const monthlyIncome = parseCurrency(document.getElementById('monthlyIncome').value);
             const monthlyRent = parseCurrency(document.getElementById('monthlyRent').value);
             const monthlyExpenses = parseCurrency(document.getElementById('monthlyExpenses').value);
@@ -1489,16 +1795,12 @@
             const retirementExpenses = parseCurrency(document.getElementById('retirementExpenses').value);
 
             let houseAge = parseInt(document.getElementById('houseAge').value) || 0;
-
-            // House age can't be lower than current age
             if (houseAge < currentAge) {
                 houseAge = currentAge;
                 document.getElementById('houseAge').value = houseAge;
             }
             const housePrice = parseCurrency(document.getElementById('housePrice').value);
             let downPayment = parseCurrency(document.getElementById('downPayment').value);
-
-            // Cap down payment at house price (silently for calculations, don't modify input while typing)
             if (downPayment > housePrice) {
                 downPayment = housePrice;
             }
@@ -1506,6 +1808,22 @@
             const mortgageTerm = parseInt(document.getElementById('mortgageTerm').value) || 0;
             const socialSecurity = parseCurrency(document.getElementById('socialSecurity').value);
             const ssAge = parseInt(document.getElementById('ssAge').value) || 0;
+
+            // Growth rates
+            const incomeGrowthRate = parsePercent(document.getElementById('incomeGrowthRate').value) / 100;
+            const expenseGrowthRate = parsePercent(document.getElementById('expenseGrowthRate').value) / 100;
+            const inflationRate = parsePercent(document.getElementById('inflationRate').value) / 100;
+            const showRealDollars = document.getElementById('showRealDollars').checked;
+
+            // Housing costs
+            const homeAppreciation = parsePercent(document.getElementById('homeAppreciation').value) / 100;
+            const propertyTaxRate = parsePercent(document.getElementById('propertyTaxRate').value) / 100;
+            const maintenanceRate = parsePercent(document.getElementById('maintenanceRate').value) / 100;
+            const homeownersInsurance = parseCurrency(document.getElementById('homeownersInsurance').value);
+            const closingCostsRate = parsePercent(document.getElementById('closingCostsRate').value) / 100;
+
+            // Social Security COLA
+            const ssCola = parsePercent(document.getElementById('ssCola').value) / 100;
 
             const currentYear = new Date().getFullYear();
             const endAge = 100;
@@ -1519,133 +1837,132 @@
             let peakBalance = 0;
             let peakAge = currentAge;
             let brokeAge = null;
+            let homeValue = 0;
+            let totalInterestPaid = 0;
 
-            // If return is lower than mortgage rate, prioritize paying off mortgage
             const prioritizeMortgage = annualReturn < (mortgageRate / 100);
 
             for (let age = currentAge; age <= endAge; age++) {
                 const year = currentYear + (age - currentAge);
+                const yearsFromStart = age - currentAge;
                 let phase = '';
                 let cashIn = 0;
                 let cashOut = 0;
                 let mortgagePayment = 0;
                 let extraPrincipal = 0;
 
-                // Determine income status
                 const isRetired = age >= retirementAge;
                 const hasSS = age >= ssAge;
-
-                // Determine housing status
                 const hasHouse = age >= houseAge;
                 const isBuyYear = age === houseAge;
                 const hasMortgage = mortgageBalance > 0;
 
-                // Calculate annual income and base expenses
-                const annualIncome = monthlyIncome * 12;
-                const annualExpenses = monthlyExpenses * 12;
-                const annualRent = monthlyRent * 12;
-                const annualRetirementExpenses = retirementExpenses * 12;
+                // Apply growth rates
+                const currentMonthlyIncome = monthlyIncome * Math.pow(1 + incomeGrowthRate, yearsFromStart);
+                const currentMonthlyExpenses = monthlyExpenses * Math.pow(1 + expenseGrowthRate, yearsFromStart);
+                const currentMonthlyRent = monthlyRent * Math.pow(1 + expenseGrowthRate, yearsFromStart);
+                const currentRetirementExpenses = retirementExpenses * Math.pow(1 + expenseGrowthRate, yearsFromStart);
 
-                // Track down payment for gains calculation (down payment is made at start of year)
+                const annualIncome = currentMonthlyIncome * 12;
+                const annualExpenses = currentMonthlyExpenses * 12;
+                const annualRent = currentMonthlyRent * 12;
+                const annualRetirementExpenses = currentRetirementExpenses * 12;
+
                 let actualDownPayment = 0;
 
-                // Handle house purchase - calculate mortgage details
+                // Home appreciation
+                if (hasHouse && !isBuyYear) {
+                    homeValue = homeValue * (1 + homeAppreciation);
+                }
+
+                // Housing costs
+                let housingCosts = 0;
+                if (hasHouse) {
+                    const propertyTax = homeValue * propertyTaxRate;
+                    const maintenance = homeValue * maintenanceRate;
+                    housingCosts = propertyTax + maintenance + homeownersInsurance;
+                }
+
                 if (isBuyYear) {
-                    // Calculate available funds for down payment
-                    // Use appropriate expenses based on retirement status
-                    const buyYearExpenses = isRetired ? retirementExpenses : monthlyExpenses;
-                    const buyYearIncome = isRetired ? (hasSS ? socialSecurity / 12 : 0) : monthlyIncome;
+                    const buyYearExpenses = isRetired ? currentRetirementExpenses : currentMonthlyExpenses;
+                    const buyYearIncome = isRetired ? (hasSS ? socialSecurity / 12 : 0) : currentMonthlyIncome;
                     const buyYearSavings = (buyYearIncome - buyYearExpenses) * 12;
+                    const closingCosts = housePrice * closingCostsRate;
                     const availableFunds = balance + (balance * annualReturn) + buyYearSavings;
-                    actualDownPayment = Math.min(downPayment, housePrice, Math.max(0, availableFunds));
-                    // Mortgage covers rest of house price
+                    actualDownPayment = Math.min(downPayment, housePrice, Math.max(0, availableFunds - closingCosts));
                     mortgageBalance = housePrice - actualDownPayment;
-                    // Calculate mortgage payment based on actual loan amount
                     actualMonthlyMortgage = calculateMortgagePayment(mortgageBalance, mortgageRate, mortgageTerm);
                     annualMortgage = actualMonthlyMortgage * 12;
                     mortgageStartYear = year;
-                    // Down payment comes from portfolio
-                    cashOut = actualDownPayment;
+                    cashOut = actualDownPayment + closingCosts;
+                    homeValue = housePrice;
                 }
 
-                // Calculate mortgage payment (needed for cash flow calculations)
                 if (hasHouse && mortgageBalance > 0) {
-                    // Cap payment at balance + interest (don't overpay on final payment)
                     const maxPayment = mortgageBalance + (mortgageBalance * mortgageRate / 100);
                     mortgagePayment = Math.min(annualMortgage, maxPayment);
                 }
 
                 if (!isRetired) {
-                    // Still working - income comes in
                     cashIn = annualIncome;
 
-                    // Calculate expenses (ADD to cashOut, don't replace - important for buy year)
                     if (!hasHouse) {
-                        // Renting: rent + other expenses
                         cashOut += annualRent + annualExpenses;
                     } else {
-                        // Own or have mortgage: other expenses + mortgage
-                        cashOut += annualExpenses + mortgagePayment;
+                        cashOut += annualExpenses + mortgagePayment + housingCosts;
                     }
 
-                    // Extra principal payment if prioritizing mortgage
                     if (!isBuyYear && prioritizeMortgage && mortgageBalance > 0) {
-                        // Calculate how much principal the regular payment covers
                         const interestThisYear = mortgageBalance * (mortgageRate / 100);
                         const regularPrincipal = Math.max(0, mortgagePayment - interestThisYear);
-                        // Extra principal is capped at remaining balance after regular principal
                         const remainingBalance = Math.max(0, mortgageBalance - regularPrincipal);
                         const netSavings = annualIncome - cashOut;
                         extraPrincipal = Math.min(Math.max(0, netSavings), remainingBalance);
                         cashOut += extraPrincipal;
                     }
                 } else {
-                    // Retired - living off portfolio
                     if (hasSS) {
-                        cashIn = socialSecurity;
+                        // Apply COLA to Social Security based on years since SS start
+                        const yearsSinceSSStart = age - ssAge;
+                        const adjustedSS = socialSecurity * Math.pow(1 + ssCola, yearsSinceSSStart);
+                        cashIn = adjustedSS;
                     }
 
-                    // Expenses in retirement
                     if (!hasHouse) {
                         cashOut += annualRent + annualRetirementExpenses;
                     } else {
-                        cashOut += annualRetirementExpenses + mortgagePayment;
+                        cashOut += annualRetirementExpenses + mortgagePayment + housingCosts;
                     }
                 }
 
-                // Determine phase name
                 let incomeStatus = !isRetired ? 'Save' : (hasSS ? 'Retire+SS' : 'Retire');
                 let housingStatus = !hasHouse ? 'Rent' : (hasMortgage || isBuyYear ? 'Mortgage' : 'Own');
                 phase = isBuyYear ? 'Buy House' : `${incomeStatus} / ${housingStatus}`;
 
                 const startBalance = Math.max(0, balance);
-                // In buy year, down payment is made at start of year, so gains are on remaining balance
                 const balanceForGains = isBuyYear ? Math.max(0, startBalance - actualDownPayment) : startBalance;
                 const gains = balanceForGains * annualReturn;
 
-                // Calculate end balance (mortgage payment already included in cashOut)
                 balance = Math.max(0, startBalance + gains + cashIn - cashOut);
 
-                // Update mortgage balance (only if payment was made)
                 if (mortgagePayment > 0 || extraPrincipal > 0) {
                     const interestPaid = mortgageBalance * (mortgageRate / 100);
                     const principalPaid = mortgagePayment - interestPaid + extraPrincipal;
+                    totalInterestPaid += interestPaid;
                     mortgageBalance = Math.max(0, mortgageBalance - principalPaid);
                 }
 
-                // Track peak
                 if (balance > peakBalance) {
                     peakBalance = balance;
                     peakAge = age;
                 }
 
-                // Track if/when broke
                 if (balance <= 0 && brokeAge === null) {
                     brokeAge = age;
                 }
 
-                // Track rent for this year (only if renting)
                 const rentThisYear = (!hasHouse) ? annualRent : 0;
+                const inflationMultiplier = Math.pow(1 + inflationRate, yearsFromStart);
 
                 data.push({
                     year,
@@ -1659,14 +1976,22 @@
                     rent: rentThisYear,
                     endBalance: Math.max(0, balance),
                     mortgagePayment: mortgagePayment + extraPrincipal,
-                    mortgageBalance: Math.max(0, mortgageBalance)
+                    mortgageBalance: Math.max(0, mortgageBalance),
+                    homeValue: hasHouse ? homeValue : 0,
+                    housingCosts: hasHouse ? housingCosts : 0,
+                    inflationMultiplier
                 });
             }
 
-            // Update summary cards
-            const retireBalance = data.find(d => d.age === retirementAge)?.startBalance || 0;
+            const retireData = data.find(d => d.age === retirementAge);
+            const retireBalance = retireData?.startBalance || 0;
             const ssStartBalance = data.find(d => d.age === ssAge)?.startBalance || 0;
-            const finalBalance = data[data.length - 1].endBalance;
+
+            const retirementAnnualExpenses = retireData?.cashOut || 0;
+            const safeWithdrawalRate = retireBalance > 0
+                ? (retirementAnnualExpenses / retireBalance) * 100
+                : 0;
+            const swrIsSustainable = safeWithdrawalRate > 0 && safeWithdrawalRate < 4;
 
             document.getElementById('summaryCards').innerHTML = `
                 <div class="summary-card">
@@ -1686,6 +2011,12 @@
                     <div class="label">Monthly Mortgage</div>
                     <div class="value">${formatMoney(actualMonthlyMortgage)}</div>
                     <div class="sub">${mortgageTerm}-year @ ${mortgageRate}%</div>
+                    <div class="sub">Total Interest: ${formatMoney(Math.round(totalInterestPaid))}</div>
+                </div>
+                <div class="summary-card">
+                    <div class="label">Safe Withdrawal Rate</div>
+                    <div class="value ${safeWithdrawalRate === 0 ? '' : (swrIsSustainable ? 'positive' : 'negative')}">${safeWithdrawalRate.toFixed(1)}%</div>
+                    <div class="sub ${safeWithdrawalRate === 0 ? '' : (swrIsSustainable ? 'positive' : 'negative')}">${safeWithdrawalRate === 0 ? 'N/A' : (swrIsSustainable ? 'Sustainable (<4%)' : 'May need adjustment')}</div>
                 </div>
                 <div class="summary-card">
                     <div class="label">Funds Last Until</div>
@@ -1694,7 +2025,6 @@
                 </div>
             `;
 
-            // Update table
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = data.map(row => {
                 let phaseClass = 'phase-save';
@@ -1704,37 +2034,39 @@
                 else if (row.phase.includes('SS')) phaseClass = 'phase-ss';
                 else if (row.phase.includes('Retire')) phaseClass = 'phase-retire';
 
+                const im = row.inflationMultiplier;
+                const getVal = (v) => showRealDollars ? v / im : v;
+
                 return `
                     <tr>
                         <td>${row.year}</td>
                         <td>${row.age}</td>
                         <td class="${phaseClass}">${row.phase}</td>
-                        <td>${formatMoney(row.startBalance)}</td>
-                        <td>${formatMoney(row.income)}</td>
-                        <td>${formatMoney(row.gains)}</td>
-                        <td>${formatMoney(row.cashIn)}</td>
-                        <td>${formatMoney(row.cashOut)}</td>
-                        <td>${formatMoney(row.rent)}</td>
-                        <td>${formatMoney(row.endBalance)}</td>
-                        <td>${formatMoney(row.mortgagePayment)}</td>
-                        <td>${formatMoney(row.mortgageBalance)}</td>
+                        <td>${formatMoney(getVal(row.startBalance))}</td>
+                        <td>${formatMoney(getVal(row.income))}</td>
+                        <td>${formatMoney(getVal(row.gains))}</td>
+                        <td>${formatMoney(getVal(row.cashIn))}</td>
+                        <td>${formatMoney(getVal(row.cashOut))}</td>
+                        <td>${formatMoney(getVal(row.rent))}</td>
+                        <td>${formatMoney(getVal(row.endBalance))}</td>
+                        <td>${formatMoney(getVal(row.mortgagePayment))}</td>
+                        <td>${formatMoney(getVal(row.mortgageBalance))}</td>
+                        <td>${formatMoney(getVal(row.homeValue))}</td>
+                        <td>${formatMoney(getVal(row.housingCosts))}</td>
                     </tr>
                 `;
             }).join('');
 
-            // Update charts
-            updateCharts(data);
+            updateCharts(data, showRealDollars);
         }
 
         // Dark mode colors for Chart.js
         Chart.defaults.color = '#8b949e';
         Chart.defaults.borderColor = '#30363d';
-        // Hide dots but keep tooltips working
         Chart.defaults.elements.point.radius = 0;
         Chart.defaults.elements.point.hitRadius = 10;
         Chart.defaults.elements.point.hoverRadius = 4;
 
-        // Custom plugin for milestone vertical lines
         const milestonePlugin = {
             id: 'milestoneLines',
             afterDraw: (chart) => {
@@ -1747,14 +2079,12 @@
                 const labels = chart.data.labels;
 
                 milestones.forEach(m => {
-                    // Find the index of this age in the labels
                     const index = labels.indexOf(m.age);
                     if (index === -1) return;
 
                     const xPos = xAxis.getPixelForValue(index);
                     if (xPos < xAxis.left || xPos > xAxis.right) return;
 
-                    // Draw vertical line
                     ctx.save();
                     ctx.beginPath();
                     ctx.setLineDash([4, 4]);
@@ -1764,7 +2094,6 @@
                     ctx.lineTo(xPos, yAxis.bottom);
                     ctx.stroke();
 
-                    // Draw label to the right of the line
                     ctx.fillStyle = m.color || '#8b949e';
                     ctx.font = '10px -apple-system, BlinkMacSystemFont, sans-serif';
                     ctx.textAlign = 'left';
@@ -1775,7 +2104,6 @@
         };
         Chart.register(milestonePlugin);
 
-        // Get current milestones for charts
         function getMilestones() {
             const currentAge = parseInt(document.getElementById('currentAge').value) || 0;
             const houseAge = parseInt(document.getElementById('houseAge').value) || 0;
@@ -1869,58 +2197,102 @@
             };
         }
 
-        function updateCharts(data) {
+        function updateCharts(data, showRealDollars = false) {
             const labels = data.map(d => d.age);
 
-            // If charts exist, just update the data (smooth transition)
+            const getVal = (row, field) => {
+                if (showRealDollars) {
+                    return row[field] / row.inflationMultiplier;
+                }
+                return row[field];
+            };
+
             if (balanceChart && cashFlowChart && mortgageChart) {
-                // Update Balance Chart
                 balanceChart.data.labels = labels;
-                balanceChart.data.datasets[0].data = data.map(d => d.startBalance);
-                balanceChart.data.datasets[1].data = data.map(d => d.endBalance);
+                balanceChart.data.datasets[0].data = data.map(d => getVal(d, 'startBalance'));
+                balanceChart.data.datasets[1].data = data.map(d => getVal(d, 'endBalance'));
+                balanceChart.data.datasets[2].data = data.map(d => {
+                    const equity = d.homeValue - d.mortgageBalance;
+                    return showRealDollars ? equity / d.inflationMultiplier : equity;
+                });
+
+                // Update mortality curve
+                const showMortality = document.getElementById('showMortality').checked;
+                const lifeExpectancy = parseInt(document.getElementById('lifeExpectancy').value) || 75;
+                balanceChart.data.datasets[3].data = data.map(d => calculateMortalityProbability(d.age, lifeExpectancy));
+                balanceChart.data.datasets[3].hidden = !showMortality;
+                balanceChart.options.scales.y1.display = showMortality;
+
                 const yMaxInput = document.getElementById('yAxisMax').value;
                 const yMaxValue = parseCurrency(yMaxInput);
-                // Use minimum of set max and data max (so chart doesn't waste space)
-                const dataMax = Math.max(...data.map(d => Math.max(d.startBalance, d.endBalance)));
+                const dataMax = Math.max(...data.map(d => Math.max(getVal(d, 'startBalance'), getVal(d, 'endBalance'))));
                 balanceChart.options.scales.y.max = yMaxValue > 0 ? Math.min(yMaxValue, dataMax * 1.1) : undefined;
-                // Update milestones
+
                 const milestones = getMilestones();
                 balanceChart.options.plugins.milestoneLines.milestones = milestones;
                 cashFlowChart.options.plugins.milestoneLines.milestones = milestones;
                 mortgageChart.options.plugins.milestoneLines.milestones = milestones;
-                balanceChart.update('none'); // 'none' for instant, remove for animation
+                balanceChart.update('none');
 
-                // Update Cash Flow Chart
                 cashFlowChart.data.labels = labels;
-                cashFlowChart.data.datasets[0].data = data.map(d => d.cashIn);
-                cashFlowChart.data.datasets[1].data = data.map(d => d.cashOut);
-                cashFlowChart.data.datasets[2].data = data.map(d => d.rent);
-                cashFlowChart.data.datasets[3].data = data.map(d => d.gains + d.cashIn - d.cashOut);
-                cashFlowChart.data.datasets[4].data = data.map(d => d.gains);
+                cashFlowChart.data.datasets[0].data = data.map(d => getVal(d, 'cashIn'));
+                cashFlowChart.data.datasets[1].data = data.map(d => getVal(d, 'cashOut'));
+                cashFlowChart.data.datasets[2].data = data.map(d => getVal(d, 'rent'));
+                cashFlowChart.data.datasets[3].data = data.map(d => {
+                    const netChange = d.gains + d.cashIn - d.cashOut;
+                    return showRealDollars ? netChange / d.inflationMultiplier : netChange;
+                });
+                cashFlowChart.data.datasets[4].data = data.map(d => getVal(d, 'gains'));
+
                 const cfYMaxInput = document.getElementById('cashFlowYMax').value;
                 const cfYMaxValue = parseCurrency(cfYMaxInput);
-                const cfDataMax = Math.max(...data.map(d => Math.max(d.cashIn, d.cashOut, d.gains, Math.abs(d.gains + d.cashIn - d.cashOut))));
+                const cfDataMax = Math.max(...data.map(d => Math.max(getVal(d, 'cashIn'), getVal(d, 'cashOut'), getVal(d, 'gains'))));
                 cashFlowChart.options.scales.y.max = cfYMaxValue > 0 ? Math.min(cfYMaxValue, cfDataMax * 1.1) : undefined;
                 cashFlowChart.update('none');
 
-                // Update Mortgage Chart
                 mortgageChart.data.labels = labels;
-                mortgageChart.data.datasets[0].data = data.map(d => d.mortgageBalance);
-                mortgageChart.data.datasets[1].data = data.map(d => d.mortgagePayment);
+                mortgageChart.data.datasets[0].data = data.map(d => getVal(d, 'mortgageBalance'));
+                mortgageChart.data.datasets[1].data = data.map(d => getVal(d, 'mortgagePayment'));
                 mortgageChart.update('none');
                 return;
             }
 
-            // Chart 1: Portfolio Balance (Y-axis starts at 0)
             const balanceOptions = createChartOptions();
             balanceOptions.scales.y.min = 0;
             const yMaxInput = document.getElementById('yAxisMax').value;
             const yMaxValue = parseCurrency(yMaxInput);
-            // Use minimum of set max and data max (so chart doesn't waste space)
-            const dataMax = Math.max(...data.map(d => Math.max(d.startBalance, d.endBalance)));
+            const dataMax = Math.max(...data.map(d => Math.max(getVal(d, 'startBalance'), getVal(d, 'endBalance'))));
             if (yMaxValue > 0) {
                 balanceOptions.scales.y.max = Math.min(yMaxValue, dataMax * 1.1);
             }
+
+            // Add secondary Y-axis for mortality probability
+            const showMortality = document.getElementById('showMortality').checked;
+            balanceOptions.scales.y1 = {
+                type: 'linear',
+                display: showMortality,
+                position: 'right',
+                min: 0,
+                max: 100,
+                title: { display: true, text: 'Mortality Probability (%)', color: '#8b949e' },
+                ticks: {
+                    color: '#8b949e',
+                    callback: function(value) {
+                        return value + '%';
+                    }
+                },
+                grid: { display: false }
+            };
+
+            // Update tooltip to handle mortality dataset
+            balanceOptions.plugins.tooltip.callbacks.label = function(context) {
+                if (context.dataset.label === 'Mortality Probability') {
+                    return context.dataset.label + ': ' + context.raw.toFixed(1) + '%';
+                }
+                return context.dataset.label + ': $' + Math.round(context.raw).toLocaleString();
+            };
+
+            const lifeExpectancy = parseInt(document.getElementById('lifeExpectancy').value) || 75;
 
             balanceChart = new Chart(document.getElementById('balanceChart').getContext('2d'), {
                 type: 'line',
@@ -1929,7 +2301,7 @@
                     datasets: [
                         {
                             label: 'Start Balance',
-                            data: data.map(d => d.startBalance),
+                            data: data.map(d => getVal(d, 'startBalance')),
                             borderColor: '#58a6ff',
                             backgroundColor: 'rgba(88, 166, 255, 0.15)',
                             borderWidth: 2,
@@ -1938,22 +2310,44 @@
                         },
                         {
                             label: 'End Balance',
-                            data: data.map(d => d.endBalance),
+                            data: data.map(d => getVal(d, 'endBalance')),
                             borderColor: '#f0883e',
                             borderWidth: 2,
                             fill: false,
                             tension: 0.1
+                        },
+                        {
+                            label: 'Home Equity',
+                            data: data.map(d => {
+                                const equity = d.homeValue - d.mortgageBalance;
+                                return showRealDollars ? equity / d.inflationMultiplier : equity;
+                            }),
+                            borderColor: '#d29922',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            fill: false,
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Mortality Probability',
+                            data: data.map(d => calculateMortalityProbability(d.age, lifeExpectancy)),
+                            borderColor: '#a371f7',
+                            backgroundColor: 'rgba(163, 113, 247, 0.2)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4,
+                            yAxisID: 'y1',
+                            hidden: !showMortality
                         }
                     ]
                 },
                 options: balanceOptions
             });
 
-            // Chart 2: Cash Flows
             const cashFlowOptions = createChartOptions();
             const cfYMaxInput = document.getElementById('cashFlowYMax').value;
             const cfYMaxValue = parseCurrency(cfYMaxInput);
-            const cfDataMax = Math.max(...data.map(d => Math.max(d.cashIn, d.cashOut, d.gains, Math.abs(d.gains + d.cashIn - d.cashOut))));
+            const cfDataMax = Math.max(...data.map(d => Math.max(getVal(d, 'cashIn'), getVal(d, 'cashOut'), getVal(d, 'gains'))));
             if (cfYMaxValue > 0) {
                 cashFlowOptions.scales.y.max = Math.min(cfYMaxValue, cfDataMax * 1.1);
             }
@@ -1965,7 +2359,7 @@
                     datasets: [
                         {
                             label: 'Cash In',
-                            data: data.map(d => d.cashIn),
+                            data: data.map(d => getVal(d, 'cashIn')),
                             borderColor: '#3fb950',
                             borderWidth: 2,
                             fill: false,
@@ -1973,7 +2367,7 @@
                         },
                         {
                             label: 'Cash Out',
-                            data: data.map(d => d.cashOut),
+                            data: data.map(d => getVal(d, 'cashOut')),
                             borderColor: '#f85149',
                             borderWidth: 2,
                             fill: false,
@@ -1981,7 +2375,7 @@
                         },
                         {
                             label: 'Rent',
-                            data: data.map(d => d.rent),
+                            data: data.map(d => getVal(d, 'rent')),
                             borderColor: '#f0883e',
                             borderWidth: 2,
                             fill: false,
@@ -1989,7 +2383,10 @@
                         },
                         {
                             label: 'Net Change',
-                            data: data.map(d => d.gains + d.cashIn - d.cashOut),
+                            data: data.map(d => {
+                                const netChange = d.gains + d.cashIn - d.cashOut;
+                                return showRealDollars ? netChange / d.inflationMultiplier : netChange;
+                            }),
                             borderColor: '#8b949e',
                             backgroundColor: 'rgba(248, 81, 73, 0.25)',
                             borderWidth: 2,
@@ -2002,7 +2399,7 @@
                         },
                         {
                             label: 'Gains',
-                            data: data.map(d => d.gains),
+                            data: data.map(d => getVal(d, 'gains')),
                             borderColor: '#a371f7',
                             borderWidth: 2,
                             fill: false,
@@ -2013,7 +2410,6 @@
                 options: cashFlowOptions
             });
 
-            // Chart 3: Mortgage
             mortgageChart = new Chart(document.getElementById('mortgageChart').getContext('2d'), {
                 type: 'line',
                 data: {
@@ -2021,7 +2417,7 @@
                     datasets: [
                         {
                             label: 'Mortgage Balance',
-                            data: data.map(d => d.mortgageBalance),
+                            data: data.map(d => getVal(d, 'mortgageBalance')),
                             borderColor: '#79c0ff',
                             backgroundColor: 'rgba(121, 192, 255, 0.15)',
                             borderWidth: 2,
@@ -2030,7 +2426,7 @@
                         },
                         {
                             label: 'Annual Payment',
-                            data: data.map(d => d.mortgagePayment),
+                            data: data.map(d => getVal(d, 'mortgagePayment')),
                             borderColor: '#56d4dd',
                             borderWidth: 2,
                             fill: false,
@@ -2047,26 +2443,22 @@
             const input = document.getElementById(id);
             if (!input) return;
 
-            // Format on load
             input.value = formatCurrency(input.value);
 
-            // Select all on focus for easy editing
             input.addEventListener('focus', function() {
                 this.select();
             });
 
-            // Format on blur
             input.addEventListener('blur', function() {
                 this.value = formatCurrency(this.value);
             });
 
-            // Allow typing and trigger calculation
             input.addEventListener('input', function() {
                 calculate();
             });
         });
 
-        // Initialize scenario system (migrate from old format if needed)
+        // Initialize scenario system
         migrateFromOldFormat();
 
         // Format currency inputs after loading
@@ -2075,17 +2467,16 @@
             if (input) input.value = formatCurrency(input.value);
         });
 
-        // Track unsaved changes (removed auto-save for manual control)
+        // Track unsaved changes
         document.addEventListener('input', (e) => {
-            // Ignore scenario dropdown changes
             if (e.target.id === 'scenarioSelect') return;
             markUnsavedChanges();
         });
 
-        // Run on page load
         calculate();
+        updateHourlyWage();
 
-        // Real-time updates on input change (for non-currency inputs)
+        // Real-time updates on input change
         document.querySelectorAll('input').forEach(input => {
             if (!currencyInputs.includes(input.id)) {
                 input.addEventListener('input', calculate);
@@ -2097,7 +2488,7 @@
         yMaxInput.addEventListener('input', calculate);
         yMaxInput.addEventListener('focus', function() { this.select(); });
         yMaxInput.addEventListener('blur', formatYMax);
-        formatYMax(); // Format on load
+        formatYMax();
 
         // Cash flow Y-axis max input
         const cfYMaxInput = document.getElementById('cashFlowYMax');
@@ -2107,12 +2498,10 @@
             const val = parseCurrency(this.value);
             if (val > 0) this.value = formatCurrency(val);
         });
-        // Format on load
         const cfVal = parseCurrency(cfYMaxInput.value);
         if (cfVal > 0) cfYMaxInput.value = formatCurrency(cfVal);
 
         // Percent input formatting
-        const percentInputs = ['annualReturn', 'mortgageRate'];
         percentInputs.forEach(id => {
             const input = document.getElementById(id);
             if (!input) return;
@@ -2121,7 +2510,6 @@
             input.addEventListener('input', calculate);
         });
 
-        // Clear any false positives from initialization
         clearUnsavedChanges();
     </script>
 </body>
