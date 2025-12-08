@@ -201,6 +201,7 @@
         .phase-save { color: #58a6ff; }
         .phase-buy { color: #d29922; }
         .phase-mortgage { color: #a371f7; }
+        .phase-own { color: #56d4dd; }
         .phase-retire { color: #3fb950; }
         .phase-ss { color: #39d353; }
         .summary-cards {
@@ -576,7 +577,7 @@
                     <div class="input-row">
                         <label>Retirement Age</label>
                         <div class="input-with-buttons">
-                            <input type="number" id="retirementAge" value="30">
+                            <input type="number" id="retirementAge" value="38">
                             <div class="btn-group">
                                 <button class="inc-btn" onclick="adjustNum('retirementAge', 1)">+</button>
                                 <button class="inc-btn" onclick="adjustNum('retirementAge', -1)">−</button>
@@ -620,7 +621,7 @@
                     <div class="input-row">
                         <label>Monthly Withdrawal</label>
                         <div class="input-with-buttons">
-                            <input type="text" id="monthlyWithdrawal" value="2500">
+                            <input type="text" id="monthlyWithdrawal" value="4000">
                             <div class="btn-group">
                                 <button class="inc-btn" onclick="adjustValue('monthlyWithdrawal', 500)">+</button>
                                 <button class="inc-btn" onclick="adjustValue('monthlyWithdrawal', -500)">−</button>
@@ -634,7 +635,7 @@
                     <div class="input-row">
                         <label>House Purchase Age</label>
                         <div class="input-with-buttons">
-                            <input type="number" id="houseAge" value="28">
+                            <input type="number" id="houseAge" value="30">
                             <div class="btn-group">
                                 <button class="inc-btn" onclick="adjustNum('houseAge', 1)">+</button>
                                 <button class="inc-btn" onclick="adjustNum('houseAge', -1)">−</button>
@@ -644,7 +645,7 @@
                     <div class="input-row">
                         <label>House Price</label>
                         <div class="input-with-buttons">
-                            <input type="text" id="housePrice" value="200000">
+                            <input type="text" id="housePrice" value="500000">
                             <div class="btn-group">
                                 <button class="inc-btn" onclick="adjustValue('housePrice', 1000)">+</button>
                                 <button class="inc-btn" onclick="adjustValue('housePrice', -1000)">−</button>
@@ -654,7 +655,7 @@
                     <div class="input-row">
                         <label>Down Payment</label>
                         <div class="input-with-buttons">
-                            <input type="text" id="downPayment" value="40000">
+                            <input type="text" id="downPayment" value="100000">
                             <div class="btn-group">
                                 <button class="inc-btn" onclick="adjustValue('downPayment', 1000)">+</button>
                                 <button class="inc-btn" onclick="adjustValue('downPayment', -1000)">−</button>
@@ -727,7 +728,18 @@
                     </div>
                 </div>
                 <div class="chart-panel">
-                    <h3>Annual Cash Flows</h3>
+                    <h3>Annual Cash Flows
+                        <span style="float: right; font-weight: normal; font-size: 12px; display: flex; align-items: center; gap: 4px;">
+                            Y-Max: <input type="text" id="cashFlowYMax" value="$200,000" placeholder="Auto"
+                                style="width: 88px; padding: 6px 8px; background: #0d1117; border: 1px solid #30363d;
+                                border-radius: 4px; color: #e6edf3; font-size: 14px; text-align: right;">
+                            <div class="btn-group">
+                                <button class="inc-btn" onclick="adjustCashFlowYMax(1)">+</button>
+                                <button class="inc-btn" onclick="adjustCashFlowYMax(-1)">−</button>
+                            </div>
+                            <button class="inc-btn auto-btn" onclick="clearCashFlowYMax()">Auto</button>
+                        </span>
+                    </h3>
                     <div class="chart-container">
                         <canvas id="cashFlowChart"></canvas>
                     </div>
@@ -775,7 +787,7 @@
             'currentAge', 'retirementAge', 'initialBalance', 'monthlySavings',
             'annualReturn', 'monthlyWithdrawal', 'houseAge', 'housePrice',
             'downPayment', 'mortgageRate', 'mortgageTerm', 'socialSecurity',
-            'ssAge', 'yAxisMax'
+            'ssAge', 'yAxisMax', 'cashFlowYMax'
         ];
 
         const currencyInputs = [
@@ -788,6 +800,7 @@
         const CURRENT_SCENARIO_KEY = 'fireCurrentScenario';
         let currentScenarioId = null;
         let hasUnsavedChanges = false;
+        let isLoadingScenario = false;
 
         // Generate unique ID
         function generateId() {
@@ -869,19 +882,20 @@
             // Default values for a new scenario
             const defaultData = {
                 currentAge: '18',
-                retirementAge: '30',
+                retirementAge: '38',
                 initialBalance: '$1,000',
                 monthlySavings: '$4,000',
                 annualReturn: '5%',
-                monthlyWithdrawal: '$2,500',
-                houseAge: '28',
-                housePrice: '$200,000',
-                downPayment: '$40,000',
+                monthlyWithdrawal: '$4,000',
+                houseAge: '30',
+                housePrice: '$500,000',
+                downPayment: '$100,000',
                 mortgageRate: '6%',
                 mortgageTerm: '30',
                 socialSecurity: '$24,000',
                 ssAge: '62',
-                yAxisMax: '$2,000,000'
+                yAxisMax: '$2,000,000',
+                cashFlowYMax: '$200,000'
             };
 
             // Generate unique name
@@ -906,9 +920,12 @@
             currentScenarioId = id;
             localStorage.setItem(CURRENT_SCENARIO_KEY, id);
 
+            isLoadingScenario = true;
             setInputValues(scenarios[id].data);
             updateScenarioDropdown();
             calculate();
+            isLoadingScenario = false;
+            clearUnsavedChanges();
 
             showToast(`Created "${finalName}"`, 'success');
             return id;
@@ -918,6 +935,8 @@
         function loadScenario(id) {
             const scenarios = getScenarios();
             if (!scenarios[id]) return;
+
+            isLoadingScenario = true;
 
             currentScenarioId = id;
             localStorage.setItem(CURRENT_SCENARIO_KEY, id);
@@ -932,6 +951,9 @@
 
             updateScenarioMeta();
             calculate();
+
+            isLoadingScenario = false;
+            clearUnsavedChanges();
         }
 
         // Save current scenario
@@ -1172,6 +1194,7 @@
 
         // Mark that there are unsaved changes
         function markUnsavedChanges() {
+            if (isLoadingScenario) return; // Don't mark changes while loading
             if (!hasUnsavedChanges) {
                 hasUnsavedChanges = true;
                 updateUnsavedIndicator();
@@ -1250,6 +1273,7 @@
             }
 
             input.value = formatCurrency(newValue);
+            markUnsavedChanges();
             calculate();
         }
 
@@ -1265,6 +1289,7 @@
             }
 
             input.value = newValue;
+            markUnsavedChanges();
             calculate();
         }
 
@@ -1283,6 +1308,7 @@
             const currentValue = parsePercent(input.value);
             const newValue = Math.max(0, currentValue + amount);
             input.value = formatPercent(newValue);
+            markUnsavedChanges();
             calculate();
         }
 
@@ -1300,11 +1326,36 @@
 
             const newValue = Math.max(step, currentValue + (step * direction));
             input.value = formatCurrency(newValue);
+            markUnsavedChanges();
             calculate();
         }
 
         function clearYMax() {
             document.getElementById('yAxisMax').value = '';
+            markUnsavedChanges();
+            calculate();
+        }
+
+        function adjustCashFlowYMax(direction) {
+            const input = document.getElementById('cashFlowYMax');
+            const currentValue = parseCurrency(input.value) || 100000;
+
+            // Smart step based on current value
+            let step;
+            if (currentValue < 50000) step = 10000;
+            else if (currentValue < 100000) step = 25000;
+            else if (currentValue < 500000) step = 50000;
+            else step = 100000;
+
+            const newValue = Math.max(step, currentValue + (step * direction));
+            input.value = formatCurrency(newValue);
+            markUnsavedChanges();
+            calculate();
+        }
+
+        function clearCashFlowYMax() {
+            document.getElementById('cashFlowYMax').value = '';
+            markUnsavedChanges();
             calculate();
         }
 
@@ -1377,10 +1428,9 @@
             const housePrice = parseCurrency(document.getElementById('housePrice').value);
             let downPayment = parseCurrency(document.getElementById('downPayment').value);
 
-            // Cap down payment at house price
+            // Cap down payment at house price (silently for calculations, don't modify input while typing)
             if (downPayment > housePrice) {
                 downPayment = housePrice;
-                document.getElementById('downPayment').value = formatCurrency(downPayment);
             }
             const mortgageRate = parsePercent(document.getElementById('mortgageRate').value) || 0;
             const mortgageTerm = parseInt(document.getElementById('mortgageTerm').value) || 0;
@@ -1411,15 +1461,19 @@
                 let mortgagePayment = 0;
                 let extraPrincipal = 0;
 
-                // Determine phase and cash flows
-                if (age < houseAge) {
-                    phase = 'Save / Rent';
-                    cashIn = monthlySavings * 12;
-                } else if (age === houseAge) {
-                    phase = 'Buy House';
-                    cashIn = monthlySavings * 12;
+                // Determine income status
+                const isRetired = age >= retirementAge;
+                const hasSS = age >= ssAge;
+
+                // Determine housing status
+                const hasHouse = age >= houseAge;
+                const isBuyYear = age === houseAge;
+                const hasMortgage = mortgageBalance > 0;
+
+                // Handle house purchase
+                if (isBuyYear) {
                     // Can only use what's available for down payment
-                    const availableFunds = balance + (balance * annualReturn) + cashIn;
+                    const availableFunds = balance + (balance * annualReturn) + monthlySavings * 12;
                     const actualDownPayment = Math.min(downPayment, Math.max(0, availableFunds));
                     cashOut = actualDownPayment;
                     // Mortgage covers rest of house price
@@ -1427,43 +1481,42 @@
                     // Calculate mortgage payment based on actual loan amount
                     actualMonthlyMortgage = calculateMortgagePayment(mortgageBalance, mortgageRate, mortgageTerm);
                     annualMortgage = actualMonthlyMortgage * 12;
-                    // Start mortgage payments in buy year
-                    if (mortgageBalance > 0) {
-                        mortgagePayment = annualMortgage;
-                    }
                     mortgageStartYear = year;
-                } else if (age < retirementAge) {
-                    phase = 'Save/Mortgage';
-                    if (prioritizeMortgage && mortgageBalance > 0) {
-                        // Apply savings to mortgage instead
+                }
+
+                // Determine cash flows based on income status
+                if (!isRetired) {
+                    // Still working - saving phase
+                    // Don't apply extra principal in buy year (already paying down payment)
+                    if (!isBuyYear && prioritizeMortgage && mortgageBalance > 0) {
                         extraPrincipal = Math.min(monthlySavings * 12, mortgageBalance);
                         cashIn = (monthlySavings * 12) - extraPrincipal;
                     } else {
                         cashIn = monthlySavings * 12;
                     }
-                    if (mortgageBalance > 0) {
-                        mortgagePayment = annualMortgage;
-                    }
-                } else if (age >= ssAge) {
-                    phase = 'Retire + SS';
-                    cashIn = socialSecurity;
-                    cashOut = monthlyWithdrawal * 12;
-                    if (mortgageBalance > 0) {
-                        mortgagePayment = annualMortgage;
-                    }
                 } else {
-                    phase = 'Retire';
-                    cashOut = monthlyWithdrawal * 12;
-                    if (mortgageBalance > 0) {
-                        mortgagePayment = annualMortgage;
+                    // Retired - withdrawal phase
+                    cashOut += monthlyWithdrawal * 12;
+                    if (hasSS) {
+                        cashIn = socialSecurity;
                     }
                 }
 
-                const startBalance = balance;
+                // Add mortgage payment if applicable
+                if (hasHouse && mortgageBalance > 0) {
+                    mortgagePayment = annualMortgage;
+                }
+
+                // Determine phase name
+                let incomeStatus = !isRetired ? 'Save' : (hasSS ? 'Retire+SS' : 'Retire');
+                let housingStatus = !hasHouse ? 'Rent' : (hasMortgage || isBuyYear ? 'Mortgage' : 'Own');
+                phase = isBuyYear ? 'Buy House' : `${incomeStatus} / ${housingStatus}`;
+
+                const startBalance = Math.max(0, balance);
                 const gains = startBalance * annualReturn;
 
                 // Calculate end balance
-                balance = startBalance + gains + cashIn - cashOut - mortgagePayment;
+                balance = Math.max(0, startBalance + gains + cashIn - cashOut - mortgagePayment);
 
                 // Update mortgage balance (only if payment was made)
                 if (mortgagePayment > 0 || extraPrincipal > 0) {
@@ -1533,6 +1586,7 @@
             tbody.innerHTML = data.map(row => {
                 let phaseClass = 'phase-save';
                 if (row.phase.includes('Buy')) phaseClass = 'phase-buy';
+                else if (row.phase.includes('Own')) phaseClass = 'phase-own';
                 else if (row.phase.includes('Mortgage')) phaseClass = 'phase-mortgage';
                 else if (row.phase.includes('SS')) phaseClass = 'phase-ss';
                 else if (row.phase.includes('Retire')) phaseClass = 'phase-retire';
@@ -1709,6 +1763,10 @@
                 cashFlowChart.data.datasets[1].data = data.map(d => d.cashOut);
                 cashFlowChart.data.datasets[2].data = data.map(d => d.gains + d.cashIn - d.cashOut - d.mortgagePayment);
                 cashFlowChart.data.datasets[3].data = data.map(d => d.gains);
+                const cfYMaxInput = document.getElementById('cashFlowYMax').value;
+                const cfYMaxValue = parseCurrency(cfYMaxInput);
+                const cfDataMax = Math.max(...data.map(d => Math.max(d.cashIn, d.cashOut, d.gains, Math.abs(d.gains + d.cashIn - d.cashOut - d.mortgagePayment))));
+                cashFlowChart.options.scales.y.max = cfYMaxValue > 0 ? Math.min(cfYMaxValue, cfDataMax * 1.1) : undefined;
                 cashFlowChart.update('none');
 
                 // Update Mortgage Chart
@@ -1758,6 +1816,14 @@
             });
 
             // Chart 2: Cash Flows
+            const cashFlowOptions = createChartOptions();
+            const cfYMaxInput = document.getElementById('cashFlowYMax').value;
+            const cfYMaxValue = parseCurrency(cfYMaxInput);
+            const cfDataMax = Math.max(...data.map(d => Math.max(d.cashIn, d.cashOut, d.gains, Math.abs(d.gains + d.cashIn - d.cashOut - d.mortgagePayment))));
+            if (cfYMaxValue > 0) {
+                cashFlowOptions.scales.y.max = Math.min(cfYMaxValue, cfDataMax * 1.1);
+            }
+
             cashFlowChart = new Chart(document.getElementById('cashFlowChart').getContext('2d'), {
                 type: 'line',
                 data: {
@@ -1802,7 +1868,7 @@
                         }
                     ]
                 },
-                options: createChartOptions()
+                options: cashFlowOptions
             });
 
             // Chart 3: Mortgage
@@ -1868,7 +1934,11 @@
         });
 
         // Track unsaved changes (removed auto-save for manual control)
-        document.addEventListener('input', markUnsavedChanges);
+        document.addEventListener('input', (e) => {
+            // Ignore scenario dropdown changes
+            if (e.target.id === 'scenarioSelect') return;
+            markUnsavedChanges();
+        });
 
         // Run on page load
         calculate();
@@ -1887,6 +1957,18 @@
         yMaxInput.addEventListener('blur', formatYMax);
         formatYMax(); // Format on load
 
+        // Cash flow Y-axis max input
+        const cfYMaxInput = document.getElementById('cashFlowYMax');
+        cfYMaxInput.addEventListener('input', calculate);
+        cfYMaxInput.addEventListener('focus', function() { this.select(); });
+        cfYMaxInput.addEventListener('blur', function() {
+            const val = parseCurrency(this.value);
+            if (val > 0) this.value = formatCurrency(val);
+        });
+        // Format on load
+        const cfVal = parseCurrency(cfYMaxInput.value);
+        if (cfVal > 0) cfYMaxInput.value = formatCurrency(cfVal);
+
         // Percent input formatting
         const percentInputs = ['annualReturn', 'mortgageRate'];
         percentInputs.forEach(id => {
@@ -1896,6 +1978,9 @@
             input.addEventListener('blur', function() { this.value = formatPercent(this.value); });
             input.addEventListener('input', calculate);
         });
+
+        // Clear any false positives from initialization
+        clearUnsavedChanges();
     </script>
 </body>
 </html>
