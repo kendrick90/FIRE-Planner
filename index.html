@@ -1427,6 +1427,10 @@
                     // Calculate mortgage payment based on actual loan amount
                     actualMonthlyMortgage = calculateMortgagePayment(mortgageBalance, mortgageRate, mortgageTerm);
                     annualMortgage = actualMonthlyMortgage * 12;
+                    // Start mortgage payments in buy year
+                    if (mortgageBalance > 0) {
+                        mortgagePayment = annualMortgage;
+                    }
                     mortgageStartYear = year;
                 } else if (age < retirementAge) {
                     phase = 'Save/Mortgage';
@@ -1461,10 +1465,10 @@
                 // Calculate end balance
                 balance = startBalance + gains + cashIn - cashOut - mortgagePayment;
 
-                // Update mortgage balance
-                if (mortgageBalance > 0) {
+                // Update mortgage balance (only if payment was made)
+                if (mortgagePayment > 0 || extraPrincipal > 0) {
                     const interestPaid = mortgageBalance * (mortgageRate / 100);
-                    const principalPaid = annualMortgage - interestPaid + extraPrincipal;
+                    const principalPaid = mortgagePayment - interestPaid + extraPrincipal;
                     mortgageBalance = Math.max(0, mortgageBalance - principalPaid);
                 }
 
@@ -1557,6 +1561,67 @@
         Chart.defaults.color = '#8b949e';
         Chart.defaults.borderColor = '#30363d';
 
+        // Custom plugin for milestone vertical lines
+        const milestonePlugin = {
+            id: 'milestoneLines',
+            afterDraw: (chart) => {
+                const milestones = chart.options.plugins.milestoneLines?.milestones;
+                if (!milestones || !milestones.length) return;
+
+                const ctx = chart.ctx;
+                const xAxis = chart.scales.x;
+                const yAxis = chart.scales.y;
+                const labels = chart.data.labels;
+
+                milestones.forEach(m => {
+                    // Find the index of this age in the labels
+                    const index = labels.indexOf(m.age);
+                    if (index === -1) return;
+
+                    const xPos = xAxis.getPixelForValue(index);
+                    if (xPos < xAxis.left || xPos > xAxis.right) return;
+
+                    // Draw vertical line
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.setLineDash([4, 4]);
+                    ctx.strokeStyle = m.color || '#8b949e';
+                    ctx.lineWidth = 1.5;
+                    ctx.moveTo(xPos, yAxis.top);
+                    ctx.lineTo(xPos, yAxis.bottom);
+                    ctx.stroke();
+
+                    // Draw label to the right of the line
+                    ctx.fillStyle = m.color || '#8b949e';
+                    ctx.font = '10px -apple-system, BlinkMacSystemFont, sans-serif';
+                    ctx.textAlign = 'left';
+                    ctx.fillText(m.label, xPos + 4, yAxis.top + 12);
+                    ctx.restore();
+                });
+            }
+        };
+        Chart.register(milestonePlugin);
+
+        // Get current milestones for charts
+        function getMilestones() {
+            const currentAge = parseInt(document.getElementById('currentAge').value) || 0;
+            const houseAge = parseInt(document.getElementById('houseAge').value) || 0;
+            const retirementAge = parseInt(document.getElementById('retirementAge').value) || 0;
+            const ssAge = parseInt(document.getElementById('ssAge').value) || 0;
+
+            const milestones = [];
+            if (houseAge >= currentAge) {
+                milestones.push({ age: houseAge, label: 'Buy House', color: '#d29922' });
+            }
+            if (retirementAge >= currentAge) {
+                milestones.push({ age: retirementAge, label: 'Retire', color: '#3fb950' });
+            }
+            if (ssAge >= currentAge && ssAge !== retirementAge) {
+                milestones.push({ age: ssAge, label: 'SS Start', color: '#39d353' });
+            }
+            return milestones;
+        }
+
         function createChartOptions(showLegend = true) {
             return {
                 responsive: true,
@@ -1567,6 +1632,9 @@
                     mode: 'index'
                 },
                 plugins: {
+                    milestoneLines: {
+                        milestones: getMilestones()
+                    },
                     legend: {
                         display: showLegend,
                         position: 'top',
@@ -1628,13 +1696,18 @@
                 // Use minimum of set max and data max (so chart doesn't waste space)
                 const dataMax = Math.max(...data.map(d => Math.max(d.startBalance, d.endBalance)));
                 balanceChart.options.scales.y.max = yMaxValue > 0 ? Math.min(yMaxValue, dataMax * 1.1) : undefined;
+                // Update milestones
+                const milestones = getMilestones();
+                balanceChart.options.plugins.milestoneLines.milestones = milestones;
+                cashFlowChart.options.plugins.milestoneLines.milestones = milestones;
+                mortgageChart.options.plugins.milestoneLines.milestones = milestones;
                 balanceChart.update('none'); // 'none' for instant, remove for animation
 
                 // Update Cash Flow Chart
                 cashFlowChart.data.labels = labels;
                 cashFlowChart.data.datasets[0].data = data.map(d => d.cashIn);
                 cashFlowChart.data.datasets[1].data = data.map(d => d.cashOut);
-                cashFlowChart.data.datasets[2].data = data.map(d => d.cashIn - d.cashOut - d.mortgagePayment);
+                cashFlowChart.data.datasets[2].data = data.map(d => d.gains + d.cashIn - d.cashOut - d.mortgagePayment);
                 cashFlowChart.data.datasets[3].data = data.map(d => d.gains);
                 cashFlowChart.update('none');
 
@@ -1707,8 +1780,8 @@
                             tension: 0.1
                         },
                         {
-                            label: 'Net Cash Flow',
-                            data: data.map(d => d.cashIn - d.cashOut - d.mortgagePayment),
+                            label: 'Net Change',
+                            data: data.map(d => d.gains + d.cashIn - d.cashOut - d.mortgagePayment),
                             borderColor: '#8b949e',
                             backgroundColor: 'rgba(248, 81, 73, 0.25)',
                             borderWidth: 2,
