@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FIRE Financial Planner</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -1056,6 +1057,10 @@
         let cashFlowChart = null;
         let mortgageChart = null;
 
+        // Milestone tracking (set during calculate())
+        let lastMortgagePaidOffAge = null;
+        let lastBrokeAge = null;
+
         // Input field IDs
         const inputIds = [
             'currentAge', 'retirementAge', 'lifeExpectancy', 'showMortality',
@@ -1400,12 +1405,17 @@
         function exportScenarios() {
             const scenarios = getScenarios();
             const currentScenario = scenarios[currentScenarioId];
-            const scenarioName = currentScenario ? currentScenario.name.replace(/[^a-z0-9]/gi, '-').toLowerCase() : 'scenarios';
+
+            if (!currentScenario) {
+                showToast('No scenario selected to export', 'error');
+                return;
+            }
+
+            const scenarioName = currentScenario.name.replace(/[^a-z0-9]/gi, '-').toLowerCase();
             const exportData = {
                 version: 2,
                 exportDate: new Date().toISOString(),
-                currentScenarioId,
-                scenarios
+                scenario: currentScenario
             };
 
             const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
@@ -1418,7 +1428,7 @@
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
 
-            showToast(`Exported ${Object.keys(scenarios).length} scenario(s)`, 'success');
+            showToast(`Exported "${currentScenario.name}"`, 'success');
         }
 
         function importScenarios(event) {
@@ -1429,15 +1439,12 @@
             reader.onload = function(e) {
                 try {
                     const importData = JSON.parse(e.target.result);
-
-                    if (!importData.scenarios) {
-                        throw new Error('Invalid file format');
-                    }
-
                     const scenarios = getScenarios();
                     let importCount = 0;
 
-                    Object.values(importData.scenarios).forEach(scenario => {
+                    // Handle single scenario format (new)
+                    if (importData.scenario) {
+                        const scenario = importData.scenario;
                         const newId = generateId();
                         let name = scenario.name;
 
@@ -1454,12 +1461,41 @@
                             name,
                             data: migrateScenarioData({ ...scenario.data })
                         };
-                        importCount++;
-                    });
+                        importCount = 1;
 
-                    saveScenarios(scenarios);
-                    updateScenarioDropdown();
-                    showToast(`Imported ${importCount} scenario(s)`, 'success');
+                        saveScenarios(scenarios);
+                        updateScenarioDropdown();
+                        loadScenario(newId);
+                        showToast(`Imported "${name}"`, 'success');
+                    }
+                    // Handle multi-scenario format (old/legacy)
+                    else if (importData.scenarios) {
+                        Object.values(importData.scenarios).forEach(scenario => {
+                            const newId = generateId();
+                            let name = scenario.name;
+
+                            const existingNames = Object.values(scenarios).map(s => s.name);
+                            let counter = 1;
+                            while (existingNames.includes(name)) {
+                                counter++;
+                                name = `${scenario.name} (${counter})`;
+                            }
+
+                            scenarios[newId] = {
+                                ...scenario,
+                                id: newId,
+                                name,
+                                data: migrateScenarioData({ ...scenario.data })
+                            };
+                            importCount++;
+                        });
+
+                        saveScenarios(scenarios);
+                        updateScenarioDropdown();
+                        showToast(`Imported ${importCount} scenario(s)`, 'success');
+                    } else {
+                        throw new Error('Invalid file format');
+                    }
                 } catch (error) {
                     showToast('Failed to import: Invalid file', 'error');
                 }
@@ -1848,6 +1884,7 @@
             let peakBalance = 0;
             let peakAge = currentAge;
             let brokeAge = null;
+            let mortgagePaidOffAge = null;
             let homeValue = 0;
             let totalInterestPaid = 0;
 
@@ -1972,7 +2009,12 @@
                     const interestPaid = mortgageBalance * (mortgageRate / 100);
                     const principalPaid = mortgagePayment - interestPaid + extraPrincipal;
                     totalInterestPaid += interestPaid;
+                    const previousBalance = mortgageBalance;
                     mortgageBalance = Math.max(0, mortgageBalance - principalPaid);
+                    // Track when mortgage is paid off
+                    if (previousBalance > 0 && mortgageBalance === 0 && mortgagePaidOffAge === null) {
+                        mortgagePaidOffAge = age;
+                    }
                 }
 
                 if (balance > peakBalance) {
@@ -2005,6 +2047,10 @@
                     inflationMultiplier
                 });
             }
+
+            // Update global milestone trackers
+            lastMortgagePaidOffAge = mortgagePaidOffAge;
+            lastBrokeAge = brokeAge;
 
             const retireData = data.find(d => d.age === retirementAge);
             const retireBalance = retireData?.startBalance || 0;
@@ -2137,11 +2183,17 @@
             if (houseAge >= currentAge) {
                 milestones.push({ age: houseAge, label: 'Buy House', color: '#d29922' });
             }
+            if (lastMortgagePaidOffAge && lastMortgagePaidOffAge > houseAge) {
+                milestones.push({ age: lastMortgagePaidOffAge, label: 'Paid Off', color: '#58a6ff' });
+            }
             if (retirementAge >= currentAge) {
                 milestones.push({ age: retirementAge, label: 'Retire', color: '#3fb950' });
             }
             if (ssAge >= currentAge && ssAge !== retirementAge) {
                 milestones.push({ age: ssAge, label: 'SS Start', color: '#39d353' });
+            }
+            if (lastBrokeAge && lastBrokeAge < 100) {
+                milestones.push({ age: lastBrokeAge, label: 'Broke', color: '#f85149' });
             }
             return milestones;
         }
