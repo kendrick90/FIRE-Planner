@@ -118,6 +118,12 @@
         .inc-btn:active {
             background: #238636;
         }
+        .inc-btn.auto-btn {
+            width: auto;
+            height: 28px;
+            padding: 0 10px;
+            font-size: 12px;
+        }
         .input-section {
             margin-bottom: 16px;
             padding-bottom: 12px;
@@ -249,11 +255,305 @@
         .table-section > div {
             padding-right: 12px;
         }
+
+        /* Scenario Management Styles */
+        .scenario-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding: 12px 16px;
+            background: #161b22;
+            border-radius: 8px;
+            border: 1px solid #30363d;
+            flex-wrap: wrap;
+        }
+        .scenario-bar label {
+            font-size: 14px;
+            color: #8b949e;
+            font-weight: 500;
+        }
+        .scenario-select {
+            flex: 1;
+            min-width: 200px;
+            max-width: 400px;
+            padding: 8px 12px;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            color: #e6edf3;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .scenario-select:focus {
+            outline: none;
+            border-color: #58a6ff;
+            box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.2);
+        }
+        .scenario-btn {
+            padding: 8px 12px;
+            background: #21262d;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            color: #e6edf3;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.15s, border-color 0.15s;
+        }
+        .scenario-btn:hover {
+            background: #30363d;
+            border-color: #484f58;
+        }
+        .scenario-btn.primary {
+            background: #238636;
+            border-color: #238636;
+        }
+        .scenario-btn.primary:hover {
+            background: #2ea043;
+            border-color: #2ea043;
+        }
+        .scenario-btn.danger {
+            color: #f85149;
+        }
+        .scenario-btn.danger:hover {
+            background: #f8514922;
+            border-color: #f85149;
+        }
+        .scenario-btn svg {
+            width: 14px;
+            height: 14px;
+            fill: currentColor;
+        }
+        .scenario-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .scenario-divider {
+            width: 1px;
+            height: 24px;
+            background: #30363d;
+        }
+        .scenario-meta {
+            font-size: 11px;
+            color: #8b949e;
+            margin-left: auto;
+        }
+        @media (max-width: 900px) {
+            .scenario-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .scenario-select {
+                max-width: none;
+            }
+            .scenario-actions {
+                justify-content: center;
+            }
+            .scenario-divider {
+                display: none;
+            }
+            .scenario-meta {
+                margin-left: 0;
+                text-align: center;
+            }
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        .modal {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+        .modal h3 {
+            color: #e6edf3;
+            margin-bottom: 16px;
+            font-size: 18px;
+        }
+        .modal-input {
+            width: 100%;
+            padding: 10px 12px;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            color: #e6edf3;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        .modal-input:focus {
+            outline: none;
+            border-color: #58a6ff;
+            box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.2);
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+        .modal-text {
+            color: #8b949e;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        .modal-text strong {
+            color: #e6edf3;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            padding: 12px 20px;
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            color: #e6edf3;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: transform 0.3s, opacity 0.3s;
+            z-index: 1001;
+        }
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .toast.success {
+            border-color: #238636;
+        }
+        .toast.error {
+            border-color: #f85149;
+        }
+
+        /* Hidden file input for import */
+        .hidden-input {
+            display: none;
+        }
+
+        /* Unsaved changes indicator */
+        .unsaved-indicator {
+            font-size: 12px;
+            color: #d29922;
+            background: rgba(210, 153, 34, 0.15);
+            padding: 4px 10px;
+            border-radius: 12px;
+            border: 1px solid rgba(210, 153, 34, 0.4);
+        }
+
+        /* Save button states */
+        .save-btn.has-changes {
+            background: #238636;
+            border-color: #238636;
+            animation: pulse-save 2s infinite;
+        }
+        .save-btn.has-changes:hover {
+            background: #2ea043;
+            border-color: #2ea043;
+        }
+        @keyframes pulse-save {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(35, 134, 54, 0.4); }
+            50% { box-shadow: 0 0 0 4px rgba(35, 134, 54, 0); }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>FIRE Financial Planner</h1>
+
+        <!-- Scenario Management Bar -->
+        <div class="scenario-bar">
+            <label for="scenarioSelect">Scenario:</label>
+            <select id="scenarioSelect" class="scenario-select" onchange="confirmSwitchScenario(this.value)">
+                <option value="">Loading...</option>
+            </select>
+            <span id="unsavedIndicator" class="unsaved-indicator" style="display: none;">Unsaved changes</span>
+            <div class="scenario-actions">
+                <button id="saveBtn" class="scenario-btn save-btn" onclick="saveScenario()" title="Save Current Scenario">
+                    <svg viewBox="0 0 16 16"><path d="M.5 1.75A1.75 1.75 0 0 1 2.25 0h8.5a.75.75 0 0 1 .53.22l3.5 3.5a.75.75 0 0 1 .22.53v10.5A1.75 1.75 0 0 1 13.25 16H2.25A1.75 1.75 0 0 1 .5 14.25Zm2.25-.25a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h1.75v-4.25A1.75 1.75 0 0 1 5.75 8.5h4.5a1.75 1.75 0 0 1 1.75 1.75v4.25h1.25a.25.25 0 0 0 .25-.25V4.81L10.69 2.5H10v2.25A1.75 1.75 0 0 1 8.25 6.5h-3.5A1.75 1.75 0 0 1 3 4.75V1.5Zm5.5 0h-4v3.25c0 .138.112.25.25.25h3.5a.25.25 0 0 0 .25-.25Zm-1.5 8.5h-1.5a.25.25 0 0 0-.25.25v4.25h4v-4.25a.25.25 0 0 0-.25-.25Z"/></svg>
+                    Save
+                </button>
+                <button class="scenario-btn primary" onclick="createNewScenario()" title="Create New Scenario">
+                    <svg viewBox="0 0 16 16"><path d="M8 0a1 1 0 0 1 1 1v6h6a1 1 0 1 1 0 2H9v6a1 1 0 1 1-2 0V9H1a1 1 0 0 1 0-2h6V1a1 1 0 0 1 1-1z"/></svg>
+                    New
+                </button>
+                <button class="scenario-btn" onclick="duplicateScenario()" title="Duplicate Current Scenario">
+                    <svg viewBox="0 0 16 16"><path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"/><path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/></svg>
+                    Duplicate
+                </button>
+                <button class="scenario-btn" onclick="showRenameModal()" title="Rename Current Scenario">
+                    <svg viewBox="0 0 16 16"><path d="M11.013 1.427a1.75 1.75 0 0 1 2.474 0l1.086 1.086a1.75 1.75 0 0 1 0 2.474l-8.61 8.61c-.21.21-.47.364-.756.445l-3.251.93a.75.75 0 0 1-.927-.928l.929-3.25c.081-.286.235-.547.445-.758l8.61-8.61Zm.176 4.823L9.75 4.81l-6.286 6.287a.253.253 0 0 0-.064.108l-.558 1.953 1.953-.558a.253.253 0 0 0 .108-.064Zm1.238-3.763a.25.25 0 0 0-.354 0L10.811 3.75l1.439 1.44 1.263-1.263a.25.25 0 0 0 0-.354Z"/></svg>
+                    Rename
+                </button>
+                <button class="scenario-btn danger" onclick="showDeleteModal()" title="Delete Current Scenario">
+                    <svg viewBox="0 0 16 16"><path d="M11 1.75V3h2.25a.75.75 0 0 1 0 1.5H2.75a.75.75 0 0 1 0-1.5H5V1.75C5 .784 5.784 0 6.75 0h2.5C10.216 0 11 .784 11 1.75ZM4.496 6.675l.66 6.6a.25.25 0 0 0 .249.225h5.19a.25.25 0 0 0 .249-.225l.66-6.6a.75.75 0 0 1 1.492.149l-.66 6.6A1.748 1.748 0 0 1 10.595 15h-5.19a1.75 1.75 0 0 1-1.741-1.575l-.66-6.6a.75.75 0 1 1 1.492-.15ZM6.5 1.75V3h3V1.75a.25.25 0 0 0-.25-.25h-2.5a.25.25 0 0 0-.25.25Z"/></svg>
+                    Delete
+                </button>
+            </div>
+            <div class="scenario-divider"></div>
+            <div class="scenario-actions">
+                <button class="scenario-btn" onclick="exportScenarios()" title="Export All Scenarios">
+                    <svg viewBox="0 0 16 16"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14Z"/><path d="M7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg>
+                    Export
+                </button>
+                <button class="scenario-btn" onclick="document.getElementById('importFile').click()" title="Import Scenarios">
+                    <svg viewBox="0 0 16 16"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14Z"/><path d="M11.78 4.72a.749.749 0 1 1-1.06 1.06L8.75 3.811V9.5a.75.75 0 0 1-1.5 0V3.811L5.28 5.78a.749.749 0 1 1-1.06-1.06l3.25-3.25a.749.749 0 0 1 1.06 0l3.25 3.25Z"/></svg>
+                    Import
+                </button>
+            </div>
+            <span class="scenario-meta" id="scenarioMeta"></span>
+        </div>
+        <input type="file" id="importFile" class="hidden-input" accept=".json" onchange="importScenarios(event)">
+
+        <!-- Rename Modal -->
+        <div id="renameModal" class="modal-overlay" onclick="closeModalOnOverlay(event, 'renameModal')">
+            <div class="modal">
+                <h3>Rename Scenario</h3>
+                <input type="text" id="renameInput" class="modal-input" placeholder="Enter scenario name" onkeydown="if(event.key==='Enter') confirmRename()">
+                <div class="modal-buttons">
+                    <button class="scenario-btn" onclick="closeModal('renameModal')">Cancel</button>
+                    <button class="scenario-btn primary" onclick="confirmRename()">Rename</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delete Modal -->
+        <div id="deleteModal" class="modal-overlay" onclick="closeModalOnOverlay(event, 'deleteModal')">
+            <div class="modal">
+                <h3>Delete Scenario</h3>
+                <p class="modal-text">Are you sure you want to delete <strong id="deleteScenarioName"></strong>? This action cannot be undone.</p>
+                <div class="modal-buttons">
+                    <button class="scenario-btn" onclick="closeModal('deleteModal')">Cancel</button>
+                    <button class="scenario-btn danger" onclick="confirmDelete()">Delete</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast Notification -->
+        <div id="toast" class="toast"></div>
 
         <div class="summary-cards" id="summaryCards"></div>
 
@@ -419,7 +719,7 @@
                                 <button class="inc-btn" onclick="adjustYMax(1)">+</button>
                                 <button class="inc-btn" onclick="adjustYMax(-1)">−</button>
                             </div>
-                            <button class="inc-btn" onclick="clearYMax()" style="width: auto; height: auto; padding: 2px 6px; font-size: 10px;">Auto</button>
+                            <button class="inc-btn auto-btn" onclick="clearYMax()">Auto</button>
                         </span>
                     </h3>
                     <div class="chart-container">
@@ -469,6 +769,463 @@
         let balanceChart = null;
         let cashFlowChart = null;
         let mortgageChart = null;
+
+        // Input field IDs (moved to top for scenario management)
+        const inputIds = [
+            'currentAge', 'retirementAge', 'initialBalance', 'monthlySavings',
+            'annualReturn', 'monthlyWithdrawal', 'houseAge', 'housePrice',
+            'downPayment', 'mortgageRate', 'mortgageTerm', 'socialSecurity',
+            'ssAge', 'yAxisMax'
+        ];
+
+        const currencyInputs = [
+            'initialBalance', 'monthlySavings', 'monthlyWithdrawal',
+            'housePrice', 'downPayment', 'socialSecurity'
+        ];
+
+        // ========== SCENARIO MANAGEMENT SYSTEM ==========
+        const SCENARIOS_KEY = 'fireScenarios';
+        const CURRENT_SCENARIO_KEY = 'fireCurrentScenario';
+        let currentScenarioId = null;
+        let hasUnsavedChanges = false;
+
+        // Generate unique ID
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
+        }
+
+        // Get all scenarios from storage
+        function getScenarios() {
+            const saved = localStorage.getItem(SCENARIOS_KEY);
+            return saved ? JSON.parse(saved) : {};
+        }
+
+        // Save all scenarios to storage
+        function saveScenarios(scenarios) {
+            localStorage.setItem(SCENARIOS_KEY, JSON.stringify(scenarios));
+        }
+
+        // Get current input values as an object
+        function getCurrentInputValues() {
+            const data = {};
+            inputIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) data[id] = el.value;
+            });
+            return data;
+        }
+
+        // Set input values from an object
+        function setInputValues(data) {
+            inputIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el && data[id] !== undefined) el.value = data[id];
+            });
+        }
+
+        // Format date for display
+        function formatDate(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        // Update the scenario dropdown
+        function updateScenarioDropdown() {
+            const select = document.getElementById('scenarioSelect');
+            const scenarios = getScenarios();
+            const scenarioList = Object.values(scenarios).sort((a, b) => b.lastModified - a.lastModified);
+
+            select.innerHTML = scenarioList.map(s =>
+                `<option value="${s.id}" ${s.id === currentScenarioId ? 'selected' : ''}>${s.name}</option>`
+            ).join('');
+
+            updateScenarioMeta();
+        }
+
+        // Update scenario metadata display
+        function updateScenarioMeta() {
+            const meta = document.getElementById('scenarioMeta');
+            const scenarios = getScenarios();
+            const current = scenarios[currentScenarioId];
+            if (current) {
+                meta.textContent = `Last saved: ${formatDate(current.lastModified)}`;
+            } else {
+                meta.textContent = '';
+            }
+        }
+
+        // Create a new scenario (with optional unsaved changes check)
+        function createNewScenario(name = null, data = null, skipUnsavedCheck = false) {
+            if (!skipUnsavedCheck && hasUnsavedChanges) {
+                if (!confirm('You have unsaved changes. Discard them and create a new scenario?')) {
+                    return null;
+                }
+            }
+            clearUnsavedChanges();
+            const scenarios = getScenarios();
+            const id = generateId();
+            const now = Date.now();
+
+            // Default values for a new scenario
+            const defaultData = {
+                currentAge: '18',
+                retirementAge: '30',
+                initialBalance: '$1,000',
+                monthlySavings: '$4,000',
+                annualReturn: '5%',
+                monthlyWithdrawal: '$2,500',
+                houseAge: '28',
+                housePrice: '$200,000',
+                downPayment: '$40,000',
+                mortgageRate: '6%',
+                mortgageTerm: '30',
+                socialSecurity: '$24,000',
+                ssAge: '62',
+                yAxisMax: '$2,000,000'
+            };
+
+            // Generate unique name
+            let baseName = name || 'New Scenario';
+            let finalName = baseName;
+            let counter = 1;
+            const existingNames = Object.values(scenarios).map(s => s.name);
+            while (existingNames.includes(finalName)) {
+                counter++;
+                finalName = `${baseName} ${counter}`;
+            }
+
+            scenarios[id] = {
+                id,
+                name: finalName,
+                created: now,
+                lastModified: now,
+                data: data || defaultData
+            };
+
+            saveScenarios(scenarios);
+            currentScenarioId = id;
+            localStorage.setItem(CURRENT_SCENARIO_KEY, id);
+
+            setInputValues(scenarios[id].data);
+            updateScenarioDropdown();
+            calculate();
+
+            showToast(`Created "${finalName}"`, 'success');
+            return id;
+        }
+
+        // Load a scenario by ID
+        function loadScenario(id) {
+            const scenarios = getScenarios();
+            if (!scenarios[id]) return;
+
+            currentScenarioId = id;
+            localStorage.setItem(CURRENT_SCENARIO_KEY, id);
+
+            setInputValues(scenarios[id].data);
+
+            // Re-format currency inputs after loading
+            currencyInputs.forEach(cid => {
+                const input = document.getElementById(cid);
+                if (input) input.value = formatCurrency(input.value);
+            });
+
+            updateScenarioMeta();
+            calculate();
+        }
+
+        // Save current scenario
+        function saveCurrentScenario() {
+            if (!currentScenarioId) return;
+
+            const scenarios = getScenarios();
+            if (!scenarios[currentScenarioId]) return;
+
+            scenarios[currentScenarioId].data = getCurrentInputValues();
+            scenarios[currentScenarioId].lastModified = Date.now();
+
+            saveScenarios(scenarios);
+            updateScenarioMeta();
+        }
+
+        // Duplicate current scenario
+        function duplicateScenario() {
+            if (hasUnsavedChanges) {
+                if (!confirm('You have unsaved changes. Discard them and duplicate the saved version?')) {
+                    return;
+                }
+            }
+            clearUnsavedChanges();
+
+            const scenarios = getScenarios();
+            const current = scenarios[currentScenarioId];
+            if (!current) return;
+
+            createNewScenario(current.name + ' (Copy)', { ...current.data }, true);
+        }
+
+        // Show rename modal
+        function showRenameModal() {
+            const scenarios = getScenarios();
+            const current = scenarios[currentScenarioId];
+            if (!current) return;
+
+            document.getElementById('renameInput').value = current.name;
+            document.getElementById('renameModal').classList.add('active');
+            document.getElementById('renameInput').focus();
+            document.getElementById('renameInput').select();
+        }
+
+        // Confirm rename
+        function confirmRename() {
+            const newName = document.getElementById('renameInput').value.trim();
+            if (!newName) {
+                showToast('Please enter a name', 'error');
+                return;
+            }
+
+            const scenarios = getScenarios();
+            if (!scenarios[currentScenarioId]) return;
+
+            scenarios[currentScenarioId].name = newName;
+            scenarios[currentScenarioId].lastModified = Date.now();
+            saveScenarios(scenarios);
+
+            updateScenarioDropdown();
+            closeModal('renameModal');
+            showToast('Scenario renamed', 'success');
+        }
+
+        // Show delete modal
+        function showDeleteModal() {
+            const scenarios = getScenarios();
+            const current = scenarios[currentScenarioId];
+            if (!current) return;
+
+            // Don't allow deleting the last scenario
+            if (Object.keys(scenarios).length <= 1) {
+                showToast('Cannot delete the only scenario', 'error');
+                return;
+            }
+
+            document.getElementById('deleteScenarioName').textContent = current.name;
+            document.getElementById('deleteModal').classList.add('active');
+        }
+
+        // Confirm delete
+        function confirmDelete() {
+            const scenarios = getScenarios();
+            if (!scenarios[currentScenarioId]) return;
+
+            const deletedName = scenarios[currentScenarioId].name;
+            delete scenarios[currentScenarioId];
+            saveScenarios(scenarios);
+
+            // Switch to another scenario
+            const remaining = Object.values(scenarios).sort((a, b) => b.lastModified - a.lastModified);
+            if (remaining.length > 0) {
+                loadScenario(remaining[0].id);
+            }
+
+            updateScenarioDropdown();
+            closeModal('deleteModal');
+            showToast(`Deleted "${deletedName}"`, 'success');
+        }
+
+        // Close modal
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // Close modal on overlay click
+        function closeModalOnOverlay(event, modalId) {
+            if (event.target.classList.contains('modal-overlay')) {
+                closeModal(modalId);
+            }
+        }
+
+        // Show toast notification
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast ' + type;
+            toast.classList.add('show');
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Export all scenarios
+        function exportScenarios() {
+            const scenarios = getScenarios();
+            const exportData = {
+                version: 1,
+                exportDate: new Date().toISOString(),
+                currentScenarioId,
+                scenarios
+            };
+
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `fire-planner-scenarios-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            showToast(`Exported ${Object.keys(scenarios).length} scenario(s)`, 'success');
+        }
+
+        // Import scenarios
+        function importScenarios(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importData = JSON.parse(e.target.result);
+
+                    if (!importData.scenarios) {
+                        throw new Error('Invalid file format');
+                    }
+
+                    const scenarios = getScenarios();
+                    let importCount = 0;
+
+                    // Import each scenario with a new ID to avoid conflicts
+                    Object.values(importData.scenarios).forEach(scenario => {
+                        const newId = generateId();
+                        let name = scenario.name;
+
+                        // Check for name conflicts and rename if necessary
+                        const existingNames = Object.values(scenarios).map(s => s.name);
+                        let counter = 1;
+                        while (existingNames.includes(name)) {
+                            counter++;
+                            name = `${scenario.name} (${counter})`;
+                        }
+
+                        scenarios[newId] = {
+                            ...scenario,
+                            id: newId,
+                            name
+                        };
+                        importCount++;
+                    });
+
+                    saveScenarios(scenarios);
+                    updateScenarioDropdown();
+                    showToast(`Imported ${importCount} scenario(s)`, 'success');
+                } catch (error) {
+                    showToast('Failed to import: Invalid file', 'error');
+                }
+
+                // Reset file input
+                event.target.value = '';
+            };
+            reader.readAsText(file);
+        }
+
+        // Migrate from old format (single scenario) to new format
+        function migrateFromOldFormat() {
+            const scenarios = getScenarios();
+
+            // If we already have scenarios, check for old data to migrate
+            if (Object.keys(scenarios).length === 0) {
+                const oldData = localStorage.getItem('firePlannerData');
+                if (oldData) {
+                    // Migrate old data
+                    const data = JSON.parse(oldData);
+                    createNewScenario('My First Scenario', data, true);
+                    localStorage.removeItem('firePlannerData'); // Clean up old key
+                } else {
+                    // No data at all, create default scenario
+                    createNewScenario('My First Scenario', null, true);
+                }
+            } else {
+                // Load the last used scenario
+                const savedCurrentId = localStorage.getItem(CURRENT_SCENARIO_KEY);
+                if (savedCurrentId && scenarios[savedCurrentId]) {
+                    loadScenario(savedCurrentId);
+                } else {
+                    // Load most recently modified
+                    const sorted = Object.values(scenarios).sort((a, b) => b.lastModified - a.lastModified);
+                    if (sorted.length > 0) {
+                        loadScenario(sorted[0].id);
+                    }
+                }
+                updateScenarioDropdown();
+            }
+        }
+
+        // Close modals with Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal('renameModal');
+                closeModal('deleteModal');
+            }
+        });
+
+        // Mark that there are unsaved changes
+        function markUnsavedChanges() {
+            if (!hasUnsavedChanges) {
+                hasUnsavedChanges = true;
+                updateUnsavedIndicator();
+            }
+        }
+
+        // Clear unsaved changes flag
+        function clearUnsavedChanges() {
+            hasUnsavedChanges = false;
+            updateUnsavedIndicator();
+        }
+
+        // Update the UI to show unsaved changes
+        function updateUnsavedIndicator() {
+            const saveBtn = document.getElementById('saveBtn');
+            const indicator = document.getElementById('unsavedIndicator');
+
+            if (hasUnsavedChanges) {
+                saveBtn.classList.add('has-changes');
+                indicator.style.display = 'inline';
+            } else {
+                saveBtn.classList.remove('has-changes');
+                indicator.style.display = 'none';
+            }
+        }
+
+        // Save button click handler
+        function saveScenario() {
+            saveCurrentScenario();
+            clearUnsavedChanges();
+            showToast('Scenario saved', 'success');
+        }
+
+        // Check for unsaved changes before switching scenarios
+        function confirmSwitchScenario(newId) {
+            if (hasUnsavedChanges) {
+                if (!confirm('You have unsaved changes. Discard them and switch scenarios?')) {
+                    // Reset dropdown to current scenario
+                    document.getElementById('scenarioSelect').value = currentScenarioId;
+                    return;
+                }
+            }
+            clearUnsavedChanges();
+            loadScenario(newId);
+        }
+
+        // Warn before leaving page with unsaved changes
+        window.addEventListener('beforeunload', (e) => {
+            if (hasUnsavedChanges) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+        // ========== END SCENARIO MANAGEMENT SYSTEM ==========
 
         // Currency formatting helpers
         function formatCurrency(value) {
@@ -632,13 +1389,12 @@
 
             const currentYear = new Date().getFullYear();
             const endAge = 100;
-            const loanAmount = housePrice - downPayment;
-            const monthlyMortgage = calculateMortgagePayment(loanAmount, mortgageRate, mortgageTerm);
-            const annualMortgage = monthlyMortgage * 12;
 
             let data = [];
             let balance = initialBalance;
             let mortgageBalance = 0;
+            let annualMortgage = 0;
+            let actualMonthlyMortgage = 0;
             let mortgageStartYear = null;
             let peakBalance = 0;
             let peakAge = currentAge;
@@ -662,8 +1418,15 @@
                 } else if (age === houseAge) {
                     phase = 'Buy House';
                     cashIn = monthlySavings * 12;
-                    cashOut = downPayment;
-                    mortgageBalance = loanAmount;
+                    // Can only use what's available for down payment
+                    const availableFunds = balance + (balance * annualReturn) + cashIn;
+                    const actualDownPayment = Math.min(downPayment, Math.max(0, availableFunds));
+                    cashOut = actualDownPayment;
+                    // Mortgage covers rest of house price
+                    mortgageBalance = housePrice - actualDownPayment;
+                    // Calculate mortgage payment based on actual loan amount
+                    actualMonthlyMortgage = calculateMortgagePayment(mortgageBalance, mortgageRate, mortgageTerm);
+                    annualMortgage = actualMonthlyMortgage * 12;
                     mortgageStartYear = year;
                 } else if (age < retirementAge) {
                     phase = 'Save/Mortgage';
@@ -725,7 +1488,7 @@
                     cashIn,
                     cashOut,
                     endBalance: Math.max(0, balance),
-                    mortgagePayment,
+                    mortgagePayment: mortgagePayment + extraPrincipal,
                     mortgageBalance: Math.max(0, mortgageBalance)
                 });
             }
@@ -751,7 +1514,7 @@
                 </div>
                 <div class="summary-card">
                     <div class="label">Monthly Mortgage</div>
-                    <div class="value">${formatMoney(monthlyMortgage)}</div>
+                    <div class="value">${formatMoney(actualMonthlyMortgage)}</div>
                     <div class="sub">${mortgageTerm}-year @ ${mortgageRate}%</div>
                 </div>
                 <div class="summary-card">
@@ -798,6 +1561,7 @@
             return {
                 responsive: true,
                 maintainAspectRatio: false,
+                animation: false,
                 interaction: {
                     intersect: false,
                     mode: 'index'
@@ -837,9 +1601,11 @@
                         ticks: {
                             color: '#8b949e',
                             callback: function(value) {
-                                if (value >= 1000000) return '$' + (value/1000000).toFixed(1) + 'M';
-                                if (value >= 1000) return '$' + (value/1000).toFixed(0) + 'K';
-                                return '$' + value;
+                                const absValue = Math.abs(value);
+                                const sign = value < 0 ? '-' : '';
+                                if (absValue >= 1000000) return sign + '$' + (absValue/1000000).toFixed(1) + 'M';
+                                if (absValue >= 1000) return sign + '$' + (absValue/1000).toFixed(0) + 'K';
+                                return sign + '$' + absValue;
                             }
                         },
                         grid: { color: '#21262d' }
@@ -859,7 +1625,9 @@
                 balanceChart.data.datasets[1].data = data.map(d => d.endBalance);
                 const yMaxInput = document.getElementById('yAxisMax').value;
                 const yMaxValue = parseCurrency(yMaxInput);
-                balanceChart.options.scales.y.max = yMaxValue > 0 ? yMaxValue : undefined;
+                // Use minimum of set max and data max (so chart doesn't waste space)
+                const dataMax = Math.max(...data.map(d => Math.max(d.startBalance, d.endBalance)));
+                balanceChart.options.scales.y.max = yMaxValue > 0 ? Math.min(yMaxValue, dataMax * 1.1) : undefined;
                 balanceChart.update('none'); // 'none' for instant, remove for animation
 
                 // Update Cash Flow Chart
@@ -883,8 +1651,10 @@
             balanceOptions.scales.y.min = 0;
             const yMaxInput = document.getElementById('yAxisMax').value;
             const yMaxValue = parseCurrency(yMaxInput);
+            // Use minimum of set max and data max (so chart doesn't waste space)
+            const dataMax = Math.max(...data.map(d => Math.max(d.startBalance, d.endBalance)));
             if (yMaxValue > 0) {
-                balanceOptions.scales.y.max = yMaxValue;
+                balanceOptions.scales.y.max = Math.min(yMaxValue, dataMax * 1.1);
             }
 
             balanceChart = new Chart(document.getElementById('balanceChart').getContext('2d'), {
@@ -924,9 +1694,8 @@
                             label: 'Cash In',
                             data: data.map(d => d.cashIn),
                             borderColor: '#3fb950',
-                            backgroundColor: 'rgba(63, 185, 80, 0.15)',
                             borderWidth: 2,
-                            fill: true,
+                            fill: false,
                             tension: 0.1
                         },
                         {
@@ -993,11 +1762,6 @@
         }
 
         // Currency input formatting
-        const currencyInputs = [
-            'initialBalance', 'monthlySavings', 'monthlyWithdrawal',
-            'housePrice', 'downPayment', 'socialSecurity'
-        ];
-
         currencyInputs.forEach(id => {
             const input = document.getElementById(id);
             if (!input) return;
@@ -1021,36 +1785,8 @@
             });
         });
 
-        // Save/Load from localStorage
-        const inputIds = [
-            'currentAge', 'retirementAge', 'initialBalance', 'monthlySavings',
-            'annualReturn', 'monthlyWithdrawal', 'houseAge', 'housePrice',
-            'downPayment', 'mortgageRate', 'mortgageTerm', 'socialSecurity',
-            'ssAge', 'yAxisMax'
-        ];
-
-        function saveToStorage() {
-            const data = {};
-            inputIds.forEach(id => {
-                const el = document.getElementById(id);
-                if (el) data[id] = el.value;
-            });
-            localStorage.setItem('firePlannerData', JSON.stringify(data));
-        }
-
-        function loadFromStorage() {
-            const saved = localStorage.getItem('firePlannerData');
-            if (saved) {
-                const data = JSON.parse(saved);
-                inputIds.forEach(id => {
-                    const el = document.getElementById(id);
-                    if (el && data[id] !== undefined) el.value = data[id];
-                });
-            }
-        }
-
-        // Load saved values
-        loadFromStorage();
+        // Initialize scenario system (migrate from old format if needed)
+        migrateFromOldFormat();
 
         // Format currency inputs after loading
         currencyInputs.forEach(id => {
@@ -1058,8 +1794,8 @@
             if (input) input.value = formatCurrency(input.value);
         });
 
-        // Save on any input change
-        document.addEventListener('input', saveToStorage);
+        // Track unsaved changes (removed auto-save for manual control)
+        document.addEventListener('input', markUnsavedChanges);
 
         // Run on page load
         calculate();
