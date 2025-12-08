@@ -151,8 +151,8 @@
             height: 220px;
         }
         .charts-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            display: flex;
+            flex-direction: column;
             gap: 16px;
         }
         .chart-panel h3 {
@@ -364,11 +364,6 @@
             font-size: 11px;
             color: #8b949e;
             margin-left: auto;
-        }
-        @media (max-width: 1100px) {
-            .charts-grid {
-                grid-template-columns: 1fr;
-            }
         }
         @media (max-width: 900px) {
             .scenario-bar {
@@ -629,6 +624,40 @@
                 </div>
 
                 <div class="input-section">
+                    <div class="input-section-title">Income</div>
+                    <div class="input-row">
+                        <label>Monthly Income</label>
+                        <div class="input-with-buttons">
+                            <input type="text" id="monthlyIncome" value="8000">
+                            <div class="btn-group">
+                                <button class="inc-btn" onclick="adjustValue('monthlyIncome', 500)">+</button>
+                                <button class="inc-btn" onclick="adjustValue('monthlyIncome', -500)">−</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="input-row">
+                        <label>Monthly Rent</label>
+                        <div class="input-with-buttons">
+                            <input type="text" id="monthlyRent" value="2000">
+                            <div class="btn-group">
+                                <button class="inc-btn" onclick="adjustValue('monthlyRent', 100)">+</button>
+                                <button class="inc-btn" onclick="adjustValue('monthlyRent', -100)">−</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="input-row">
+                        <label>Monthly Expenses</label>
+                        <div class="input-with-buttons">
+                            <input type="text" id="monthlyExpenses" value="2000">
+                            <div class="btn-group">
+                                <button class="inc-btn" onclick="adjustValue('monthlyExpenses', 100)">+</button>
+                                <button class="inc-btn" onclick="adjustValue('monthlyExpenses', -100)">−</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="input-section">
                     <div class="input-section-title">Savings & Returns</div>
                     <div class="input-row">
                         <label>Initial Balance</label>
@@ -641,32 +670,12 @@
                         </div>
                     </div>
                     <div class="input-row">
-                        <label>Monthly Savings</label>
-                        <div class="input-with-buttons">
-                            <input type="text" id="monthlySavings" value="4000">
-                            <div class="btn-group">
-                                <button class="inc-btn" onclick="adjustValue('monthlySavings', 500)">+</button>
-                                <button class="inc-btn" onclick="adjustValue('monthlySavings', -500)">−</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="input-row">
                         <label>Annual Return</label>
                         <div class="input-with-buttons">
                             <input type="text" id="annualReturn" value="5%">
                             <div class="btn-group">
                                 <button class="inc-btn" onclick="adjustPercent('annualReturn', 0.5)">+</button>
                                 <button class="inc-btn" onclick="adjustPercent('annualReturn', -0.5)">−</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="input-row">
-                        <label>Monthly Withdrawal</label>
-                        <div class="input-with-buttons">
-                            <input type="text" id="monthlyWithdrawal" value="4000">
-                            <div class="btn-group">
-                                <button class="inc-btn" onclick="adjustValue('monthlyWithdrawal', 500)">+</button>
-                                <button class="inc-btn" onclick="adjustValue('monthlyWithdrawal', -500)">−</button>
                             </div>
                         </div>
                     </div>
@@ -727,7 +736,17 @@
                 </div>
 
                 <div class="input-section">
-                    <div class="input-section-title">Social Security</div>
+                    <div class="input-section-title">Retirement</div>
+                    <div class="input-row">
+                        <label>Retirement Expenses</label>
+                        <div class="input-with-buttons">
+                            <input type="text" id="retirementExpenses" value="4000">
+                            <div class="btn-group">
+                                <button class="inc-btn" onclick="adjustValue('retirementExpenses', 500)">+</button>
+                                <button class="inc-btn" onclick="adjustValue('retirementExpenses', -500)">−</button>
+                            </div>
+                        </div>
+                    </div>
                     <div class="input-row">
                         <label>Annual SS Benefit</label>
                         <div class="input-with-buttons">
@@ -803,9 +822,11 @@
                             <th>Age</th>
                             <th>Phase</th>
                             <th>Start Balance</th>
+                            <th>Income</th>
                             <th>Gains</th>
                             <th>Cash In</th>
                             <th>Cash Out</th>
+                            <th>Rent</th>
                             <th>End Balance</th>
                             <th>Mortgage Pmt</th>
                             <th>Mortgage Bal</th>
@@ -824,15 +845,15 @@
 
         // Input field IDs (moved to top for scenario management)
         const inputIds = [
-            'currentAge', 'retirementAge', 'initialBalance', 'monthlySavings',
-            'annualReturn', 'monthlyWithdrawal', 'houseAge', 'housePrice',
-            'downPayment', 'mortgageRate', 'mortgageTerm', 'socialSecurity',
-            'ssAge', 'yAxisMax', 'cashFlowYMax'
+            'currentAge', 'retirementAge', 'monthlyIncome', 'monthlyRent',
+            'monthlyExpenses', 'initialBalance', 'annualReturn', 'houseAge',
+            'housePrice', 'downPayment', 'mortgageRate', 'mortgageTerm',
+            'retirementExpenses', 'socialSecurity', 'ssAge', 'yAxisMax', 'cashFlowYMax'
         ];
 
         const currencyInputs = [
-            'initialBalance', 'monthlySavings', 'monthlyWithdrawal',
-            'housePrice', 'downPayment', 'socialSecurity'
+            'monthlyIncome', 'monthlyRent', 'monthlyExpenses', 'initialBalance',
+            'housePrice', 'downPayment', 'retirementExpenses', 'socialSecurity'
         ];
 
         // ========== SCENARIO MANAGEMENT SYSTEM ==========
@@ -923,15 +944,17 @@
             const defaultData = {
                 currentAge: '18',
                 retirementAge: '38',
+                monthlyIncome: '$8,000',
+                monthlyRent: '$2,000',
+                monthlyExpenses: '$2,000',
                 initialBalance: '$1,000',
-                monthlySavings: '$4,000',
                 annualReturn: '5%',
-                monthlyWithdrawal: '$4,000',
                 houseAge: '30',
                 housePrice: '$500,000',
                 downPayment: '$100,000',
                 mortgageRate: '6%',
                 mortgageTerm: '30',
+                retirementExpenses: '$4,000',
                 socialSecurity: '$24,000',
                 ssAge: '62',
                 yAxisMax: '$2,000,000',
@@ -1456,10 +1479,15 @@
                 retirementAge = currentAge;
                 document.getElementById('retirementAge').value = retirementAge;
             }
+
+            // Income and expenses
+            const monthlyIncome = parseCurrency(document.getElementById('monthlyIncome').value);
+            const monthlyRent = parseCurrency(document.getElementById('monthlyRent').value);
+            const monthlyExpenses = parseCurrency(document.getElementById('monthlyExpenses').value);
             const initialBalance = parseCurrency(document.getElementById('initialBalance').value);
-            const monthlySavings = parseCurrency(document.getElementById('monthlySavings').value);
             const annualReturn = parsePercent(document.getElementById('annualReturn').value) / 100 || 0;
-            const monthlyWithdrawal = parseCurrency(document.getElementById('monthlyWithdrawal').value);
+            const retirementExpenses = parseCurrency(document.getElementById('retirementExpenses').value);
+
             let houseAge = parseInt(document.getElementById('houseAge').value) || 0;
 
             // House age can't be lower than current age
@@ -1512,10 +1540,17 @@
                 const isBuyYear = age === houseAge;
                 const hasMortgage = mortgageBalance > 0;
 
+                // Calculate annual income and base expenses
+                const annualIncome = monthlyIncome * 12;
+                const annualExpenses = monthlyExpenses * 12;
+                const annualRent = monthlyRent * 12;
+                const annualRetirementExpenses = retirementExpenses * 12;
+
                 // Handle house purchase
                 if (isBuyYear) {
-                    // Can only use what's available for down payment
-                    const availableFunds = balance + (balance * annualReturn) + monthlySavings * 12;
+                    // Calculate available funds before down payment
+                    const monthlySavingsBeforeBuy = monthlyIncome - monthlyRent - monthlyExpenses;
+                    const availableFunds = balance + (balance * annualReturn) + monthlySavingsBeforeBuy * 12;
                     const actualDownPayment = Math.min(downPayment, Math.max(0, availableFunds));
                     cashOut = actualDownPayment;
                     // Mortgage covers rest of house price
@@ -1528,19 +1563,39 @@
 
                 // Determine cash flows based on income status
                 if (!isRetired) {
-                    // Still working - saving phase
-                    // Don't apply extra principal in buy year (already paying down payment)
-                    if (!isBuyYear && prioritizeMortgage && mortgageBalance > 0) {
-                        extraPrincipal = Math.min(monthlySavings * 12, mortgageBalance);
-                        cashIn = (monthlySavings * 12) - extraPrincipal;
+                    // Still working - calculate savings from income minus expenses
+                    cashIn = annualIncome;
+
+                    // Housing costs (rent or mortgage)
+                    if (!hasHouse) {
+                        // Renting
+                        cashOut = annualRent + annualExpenses;
+                    } else if (hasMortgage || isBuyYear) {
+                        // Has mortgage
+                        cashOut += annualExpenses;
                     } else {
-                        cashIn = monthlySavings * 12;
+                        // Own outright
+                        cashOut = annualExpenses;
+                    }
+
+                    // Extra principal payment if prioritizing mortgage
+                    if (!isBuyYear && prioritizeMortgage && mortgageBalance > 0) {
+                        const netSavings = annualIncome - cashOut - annualMortgage;
+                        extraPrincipal = Math.min(Math.max(0, netSavings), mortgageBalance);
                     }
                 } else {
-                    // Retired - withdrawal phase
-                    cashOut += monthlyWithdrawal * 12;
+                    // Retired - living off portfolio
                     if (hasSS) {
                         cashIn = socialSecurity;
+                    }
+
+                    // Housing costs in retirement
+                    if (!hasHouse) {
+                        cashOut = annualRent + annualRetirementExpenses;
+                    } else if (hasMortgage) {
+                        cashOut = annualRetirementExpenses;
+                    } else {
+                        cashOut = annualRetirementExpenses;
                     }
                 }
 
@@ -1578,14 +1633,19 @@
                     brokeAge = age;
                 }
 
+                // Track rent for this year (only if renting)
+                const rentThisYear = (!hasHouse) ? annualRent : 0;
+
                 data.push({
                     year,
                     age,
                     phase,
                     startBalance,
+                    income: !isRetired ? annualIncome : 0,
                     gains,
                     cashIn,
                     cashOut,
+                    rent: rentThisYear,
                     endBalance: Math.max(0, balance),
                     mortgagePayment: mortgagePayment + extraPrincipal,
                     mortgageBalance: Math.max(0, mortgageBalance)
@@ -1639,9 +1699,11 @@
                         <td>${row.age}</td>
                         <td class="${phaseClass}">${row.phase}</td>
                         <td>${formatMoney(row.startBalance)}</td>
+                        <td>${formatMoney(row.income)}</td>
                         <td>${formatMoney(row.gains)}</td>
                         <td>${formatMoney(row.cashIn)}</td>
                         <td>${formatMoney(row.cashOut)}</td>
+                        <td>${formatMoney(row.rent)}</td>
                         <td>${formatMoney(row.endBalance)}</td>
                         <td>${formatMoney(row.mortgagePayment)}</td>
                         <td>${formatMoney(row.mortgageBalance)}</td>
@@ -1803,8 +1865,9 @@
                 cashFlowChart.data.labels = labels;
                 cashFlowChart.data.datasets[0].data = data.map(d => d.cashIn);
                 cashFlowChart.data.datasets[1].data = data.map(d => d.cashOut);
-                cashFlowChart.data.datasets[2].data = data.map(d => d.gains + d.cashIn - d.cashOut - d.mortgagePayment);
-                cashFlowChart.data.datasets[3].data = data.map(d => d.gains);
+                cashFlowChart.data.datasets[2].data = data.map(d => d.rent);
+                cashFlowChart.data.datasets[3].data = data.map(d => d.gains + d.cashIn - d.cashOut - d.mortgagePayment);
+                cashFlowChart.data.datasets[4].data = data.map(d => d.gains);
                 const cfYMaxInput = document.getElementById('cashFlowYMax').value;
                 const cfYMaxValue = parseCurrency(cfYMaxInput);
                 const cfDataMax = Math.max(...data.map(d => Math.max(d.cashIn, d.cashOut, d.gains, Math.abs(d.gains + d.cashIn - d.cashOut - d.mortgagePayment))));
@@ -1883,6 +1946,14 @@
                             label: 'Cash Out',
                             data: data.map(d => d.cashOut),
                             borderColor: '#f85149',
+                            borderWidth: 2,
+                            fill: false,
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Rent',
+                            data: data.map(d => d.rent),
+                            borderColor: '#f0883e',
                             borderWidth: 2,
                             fill: false,
                             tension: 0.1
