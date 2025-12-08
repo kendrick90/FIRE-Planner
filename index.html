@@ -694,7 +694,7 @@
                     </div>
                     <div class="input-row">
                         <label class="tooltip" data-tooltip="Show shaded mortality probability bands on the portfolio chart">Show Mortality</label>
-                        <input type="checkbox" id="showMortality" checked onchange="calculate()">
+                        <input type="checkbox" id="showMortality" onchange="calculate()">
                     </div>
                 </div>
 
@@ -713,7 +713,7 @@
                     <div class="input-row">
                         <label class="tooltip" data-tooltip="Combined federal, state, and local tax rate applied to your salary">Tax Rate</label>
                         <div class="input-with-buttons">
-                            <input type="text" id="taxRate" value="26%" oninput="syncSalaryToIncome()">
+                            <input type="text" id="taxRate" value="33%" oninput="syncSalaryToIncome()">
                             <div class="btn-group">
                                 <button class="inc-btn" onclick="adjustPercent('taxRate', 1)">+</button>
                                 <button class="inc-btn" onclick="adjustPercent('taxRate', -1)">−</button>
@@ -723,7 +723,7 @@
                     <div class="input-row">
                         <label class="tooltip" data-tooltip="Take-home pay after taxes: Salary × (1 - Tax Rate) ÷ 12">Monthly Income</label>
                         <div class="input-with-buttons">
-                            <input type="text" id="monthlyIncome" value="$8,000" oninput="syncIncomeToSalary()">
+                            <input type="text" id="monthlyIncome" value="$7,258" oninput="syncIncomeToSalary()">
                             <div class="btn-group">
                                 <button class="inc-btn" onclick="adjustMonthlyIncome(500)">+</button>
                                 <button class="inc-btn" onclick="adjustMonthlyIncome(-500)">−</button>
@@ -929,10 +929,10 @@
                     <div class="input-row">
                         <label class="tooltip" data-tooltip="How to handle extra savings: Minimum = pay only required mortgage, Aggressive = prioritize paying off mortgage, Balanced = split extra 50/50">Extra Payment</label>
                         <select id="mortgageStrategy" onchange="calculate()" style="width: 110px; padding: 6px 8px; border: 1px solid #30363d; border-radius: 4px; font-size: 14px; background: #0d1117; color: #e6edf3;">
-                            <option value="minimum">Minimum</option>
+                            <option value="minimum" selected>Minimum</option>
                             <option value="balanced">Balanced</option>
                             <option value="aggressive">Aggressive</option>
-                            <option value="auto" selected>Auto</option>
+                            <option value="auto">Auto</option>
                         </select>
                     </div>
                 </div>
@@ -1172,16 +1172,16 @@
             if (data.homeownersInsurance === undefined) data.homeownersInsurance = '$1,500';
             if (data.closingCostsRate === undefined) data.closingCostsRate = '3%';
             if (data.ssCola === undefined) data.ssCola = '2.5%';
-            if (data.mortgageStrategy === undefined) data.mortgageStrategy = 'auto';
+            if (data.mortgageStrategy === undefined) data.mortgageStrategy = 'minimum';
             if (data.lifeExpectancy === undefined) data.lifeExpectancy = '75';
-            if (data.showMortality === undefined) data.showMortality = 'true';
+            if (data.showMortality === undefined) data.showMortality = 'false';
             // Migrate salary/tax - derive from existing monthlyIncome if not present
             if (data.annualSalary === undefined || data.taxRate === undefined) {
                 const monthlyIncome = parseFloat((data.monthlyIncome || '$8,000').toString().replace(/[^0-9.-]/g, '')) || 8000;
                 const defaultTaxRate = 0.26;
                 const annualSalary = Math.round((monthlyIncome * 12) / (1 - defaultTaxRate));
                 data.annualSalary = '$' + annualSalary.toLocaleString('en-US');
-                data.taxRate = '26%';
+                data.taxRate = '33%';
             }
             return data;
         }
@@ -1201,8 +1201,8 @@
                 currentAge: '18',
                 retirementAge: '38',
                 annualSalary: '$130,000',
-                taxRate: '26%',
-                monthlyIncome: '$8,000',
+                taxRate: '33%',
+                monthlyIncome: '$7,258',
                 monthlyRent: '$2,000',
                 monthlyExpenses: '$2,000',
                 initialBalance: '$1,000',
@@ -1227,9 +1227,9 @@
                 homeownersInsurance: '$1,500',
                 closingCostsRate: '3%',
                 ssCola: '2.5%',
-                mortgageStrategy: 'auto',
+                mortgageStrategy: 'minimum',
                 lifeExpectancy: '75',
-                showMortality: 'true'
+                showMortality: 'false'
             };
 
             let baseName = name || 'New Scenario';
