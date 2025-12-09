@@ -1490,6 +1490,23 @@
                     const shareData = JSON.parse(decodeURIComponent(escape(atob(encoded))));
 
                     const scenarios = getScenarios();
+                    const sharedDataStr = JSON.stringify(migrateScenarioData(shareData.d));
+
+                    // Check if an identical scenario already exists
+                    const existingScenario = Object.values(scenarios).find(s =>
+                        JSON.stringify(s.data) === sharedDataStr
+                    );
+
+                    if (existingScenario) {
+                        // Load existing scenario instead of creating duplicate
+                        updateScenarioDropdown();
+                        loadScenario(existingScenario.id);
+                        history.replaceState(null, '', window.location.pathname);
+                        showToast(`Loaded existing scenario "${existingScenario.name}"`, 'success');
+                        return true;
+                    }
+
+                    // Create new scenario
                     const newId = generateId();
                     let name = shareData.n || 'Shared Scenario';
 
