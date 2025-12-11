@@ -920,6 +920,12 @@
                         </div>
                     </div>
                     <div class="input-row">
+                        <label class="tooltip" data-tooltip="California Prop 13: Assessed value locked at purchase price, increases max 2%/year regardless of market appreciation.">Prop 13</label>
+                        <div class="toggle-container">
+                            <input type="checkbox" id="prop13">
+                        </div>
+                    </div>
+                    <div class="input-row">
                         <label class="tooltip" data-tooltip="Annual maintenance/repairs as % of home value. Rule of thumb: 1-2% per year.">Maintenance %</label>
                         <div class="input-with-buttons">
                             <input type="text" id="maintenanceRate" value="1%">
@@ -1092,7 +1098,7 @@
             'housePrice', 'downPayment', 'mortgageRate', 'mortgageTerm',
             'retirementExpenses', 'socialSecurity', 'ssAge', 'ssCola', 'yAxisMax', 'cashFlowYMax',
             'incomeGrowthRate', 'expenseGrowthRate', 'inflationRate', 'showRealDollars',
-            'homeAppreciation', 'propertyTaxRate', 'maintenanceRate', 'homeownersInsurance',
+            'homeAppreciation', 'propertyTaxRate', 'prop13', 'maintenanceRate', 'homeownersInsurance',
             'closingCostsRate', 'mortgageStrategy'
         ];
 
@@ -1198,6 +1204,7 @@
             if (data.mortgageStrategy === undefined) data.mortgageStrategy = 'minimum';
             if (data.lifeExpectancy === undefined) data.lifeExpectancy = '75';
             if (data.showLifeExpectancy === undefined) data.showLifeExpectancy = 'false';
+            if (data.prop13 === undefined) data.prop13 = 'false';
             // Migrate salary/tax - derive from existing monthlyIncome if not present
             if (data.annualSalary === undefined || data.taxRate === undefined) {
                 const monthlyIncome = parseFloat((data.monthlyIncome || '$8,000').toString().replace(/[^0-9.-]/g, '')) || 8000;
@@ -1246,6 +1253,7 @@
                 showRealDollars: 'false',
                 homeAppreciation: '3%',
                 propertyTaxRate: '1.2%',
+                prop13: 'false',
                 maintenanceRate: '1%',
                 homeownersInsurance: '$1,500',
                 closingCostsRate: '3%',
@@ -1998,6 +2006,7 @@
             // Housing costs
             const homeAppreciation = parsePercent(document.getElementById('homeAppreciation').value) / 100;
             const propertyTaxRate = parsePercent(document.getElementById('propertyTaxRate').value) / 100;
+            const prop13 = document.getElementById('prop13').checked;
             const maintenanceRate = parsePercent(document.getElementById('maintenanceRate').value) / 100;
             const homeownersInsurance = parseCurrency(document.getElementById('homeownersInsurance').value);
             const closingCostsRate = parsePercent(document.getElementById('closingCostsRate').value) / 100;
@@ -2019,6 +2028,7 @@
             let brokeAge = null;
             let mortgagePaidOffAge = null;
             let homeValue = 0;
+            let assessedValue = 0; // For Prop 13: assessed value grows at max 2%/year
             let totalInterestPaid = 0;
 
             // Mortgage payoff strategy
@@ -2060,14 +2070,10 @@
                 // Home appreciation
                 if (hasHouse && !isBuyYear) {
                     homeValue = homeValue * (1 + homeAppreciation);
-                }
-
-                // Housing costs
-                let housingCosts = 0;
-                if (hasHouse) {
-                    const propertyTax = homeValue * propertyTaxRate;
-                    const maintenance = homeValue * maintenanceRate;
-                    housingCosts = propertyTax + maintenance + homeownersInsurance;
+                    // Prop 13: assessed value grows at max 2% per year
+                    if (prop13) {
+                        assessedValue = assessedValue * (1 + Math.min(homeAppreciation, 0.02));
+                    }
                 }
 
                 if (isBuyYear) {
@@ -2083,6 +2089,19 @@
                     mortgageStartYear = year;
                     cashOut = actualDownPayment + closingCosts;
                     homeValue = housePrice;
+                    assessedValue = housePrice; // Prop 13: assessed value starts at purchase price
+                }
+
+                // Housing costs (calculated after isBuyYear so homeValue/assessedValue are set)
+                let housingCosts = 0;
+                if (hasHouse) {
+                    // Prop 13: property tax based on assessed value (capped growth), not market value
+                    const taxableValue = prop13 ? assessedValue : homeValue;
+                    const propertyTax = taxableValue * propertyTaxRate;
+                    // Maintenance scales with inflation, not home appreciation
+                    const baseMaintenance = housePrice * maintenanceRate;
+                    const maintenance = baseMaintenance * Math.pow(1 + inflationRate, yearsFromStart - (houseAge - currentAge));
+                    housingCosts = propertyTax + maintenance + homeownersInsurance;
                 }
 
                 if (hasHouse && mortgageBalance > 0) {
