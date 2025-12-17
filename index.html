@@ -259,7 +259,10 @@
             border-radius: 8px;
             padding: 20px;
             border: 1px solid #30363d;
+            width: max-content;
+            max-width: 100vw;
             overflow-x: auto;
+            margin: 0 auto;
         }
         .table-section h2 {
             font-size: 16px;
@@ -283,6 +286,32 @@
             color: #8b949e;
             position: sticky;
             top: 0;
+        }
+        .collapsible-header {
+            cursor: pointer;
+            user-select: none;
+            text-align: center;
+        }
+        .collapsible-header:hover {
+            background: #30363d;
+        }
+        .expand-icon {
+            font-size: 10px;
+            margin-left: 4px;
+            display: inline-block;
+        }
+        thead tr:first-child th {
+            text-align: center;
+            font-weight: 700;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .detail-column {
+            display: none;
+        }
+        .detail-column.expanded {
+            display: table-cell;
         }
         th:first-child, td:first-child,
         th:nth-child(2), td:nth-child(2),
@@ -327,29 +356,6 @@
         .negative { color: #f85149; }
         .positive { color: #3fb950; }
 
-        /* Custom scrollbar */
-        .table-section ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        .table-section ::-webkit-scrollbar-track {
-            background: #161b22;
-            border-radius: 4px;
-        }
-        .table-section ::-webkit-scrollbar-thumb {
-            background: #30363d;
-            border-radius: 4px;
-        }
-        .table-section ::-webkit-scrollbar-thumb:hover {
-            background: #484f58;
-        }
-        .table-section {
-            scrollbar-width: thin;
-            scrollbar-color: #30363d #161b22;
-        }
-        .table-section > div {
-            padding-right: 12px;
-        }
 
         /* Scenario Management Styles */
         .scenario-bar {
@@ -774,7 +780,7 @@
                         </div>
                     </div>
                     <div class="input-row">
-                        <label class="tooltip" data-tooltip="Non-housing monthly expenses (food, utilities, transport, etc.). Grows with expense growth rate.">Monthly Expenses</label>
+                        <label class="tooltip" data-tooltip="Monthly living expenses (food, transport, entertainment, subscriptions, etc.). Housing costs and homeowner bills tracked separately. Grows with expense growth rate.">Monthly Expenses</label>
                         <div class="input-with-buttons">
                             <input type="text" id="monthlyExpenses" value="2000">
                             <div class="btn-group">
@@ -946,6 +952,16 @@
                         </div>
                     </div>
                     <div class="input-row">
+                        <label class="tooltip" data-tooltip="Monthly bills for utilities, HOA, internet, etc. when owning a home.">Monthly Bills</label>
+                        <div class="input-with-buttons">
+                            <input type="text" id="monthlyBills" value="$300">
+                            <div class="btn-group">
+                                <button class="inc-btn" onclick="adjustValue('monthlyBills', 50)">+</button>
+                                <button class="inc-btn" onclick="adjustValue('monthlyBills', -50)">−</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="input-row">
                         <label class="tooltip" data-tooltip="One-time costs at purchase (title, appraisal, fees, etc.). Typically 2-5% of home price.">Closing Costs %</label>
                         <div class="input-with-buttons">
                             <input type="text" id="closingCostsRate" value="3%">
@@ -1055,29 +1071,37 @@
 
         <div class="table-section">
             <h2>Year-by-Year Projection</h2>
-            <div style="max-height: 500px; overflow-y: auto;">
-                <table id="projectionTable">
-                    <thead>
-                        <tr>
-                            <th>Year</th>
-                            <th>Age</th>
-                            <th>Phase</th>
-                            <th>Start Balance</th>
-                            <th>Income</th>
-                            <th>Gains</th>
-                            <th>Cash In</th>
-                            <th>Cash Out</th>
-                            <th>Rent</th>
-                            <th>End Balance</th>
-                            <th>Mortgage Pmt</th>
-                            <th>Mortgage Bal</th>
-                            <th>Home Value</th>
-                            <th>Housing Costs</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody"></tbody>
-                </table>
-            </div>
+            <table id="projectionTable">
+                <thead>
+                    <tr>
+                        <th colspan="3">Basic Info</th>
+                        <th colspan="2">Income/Expenses</th>
+                        <th colspan="6" class="collapsible-header" onclick="toggleColumns('housing')">Housing <span class="expand-icon">▾</span></th>
+                        <th colspan="2" class="collapsible-header" onclick="toggleColumns('investments')">Investments <span class="expand-icon">▾</span></th>
+                        <th colspan="4" class="collapsible-header" onclick="toggleColumns('balances')">Balances <span class="expand-icon">▾</span></th>
+                    </tr>
+                    <tr>
+                        <th>Year</th>
+                        <th>Age</th>
+                        <th>Phase</th>
+                        <th>Total Income</th>
+                        <th>Living Expenses</th>
+                        <th class="detail-column housing-detail expanded">PITI</th>
+                        <th class="detail-column housing-detail expanded">Rent</th>
+                        <th class="detail-column housing-detail expanded">Bills</th>
+                        <th class="detail-column housing-detail expanded">Maintenance</th>
+                        <th class="detail-column housing-detail expanded">Extra Principal</th>
+                        <th>Total Housing</th>
+                        <th>Net Savings</th>
+                        <th class="detail-column investments-detail expanded">Investment Returns</th>
+                        <th class="detail-column balances-detail expanded">Portfolio Balance</th>
+                        <th class="detail-column balances-detail expanded">Mortgage Bal</th>
+                        <th class="detail-column balances-detail expanded">Home Value</th>
+                        <th>Net Worth</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
         </div>
     </div>
 
@@ -1099,13 +1123,13 @@
             'retirementExpenses', 'socialSecurity', 'ssAge', 'ssCola', 'yAxisMax', 'cashFlowYMax',
             'incomeGrowthRate', 'expenseGrowthRate', 'inflationRate', 'showRealDollars',
             'homeAppreciation', 'propertyTaxRate', 'prop13', 'maintenanceRate', 'homeownersInsurance',
-            'closingCostsRate', 'mortgageStrategy'
+            'monthlyBills', 'closingCostsRate', 'mortgageStrategy'
         ];
 
         const currencyInputs = [
             'monthlyIncome', 'monthlyRent', 'monthlyExpenses', 'initialBalance',
             'housePrice', 'downPayment', 'retirementExpenses', 'socialSecurity',
-            'homeownersInsurance'
+            'homeownersInsurance', 'monthlyBills'
         ];
 
         const percentInputs = [
@@ -1120,6 +1144,7 @@
         let currentScenarioId = null;
         let hasUnsavedChanges = false;
         let isLoadingScenario = false;
+        const expandedSections = new Set(['housing', 'investments', 'balances']);
 
         function generateId() {
             return Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
@@ -2009,6 +2034,7 @@
             const prop13 = document.getElementById('prop13').checked;
             const maintenanceRate = parsePercent(document.getElementById('maintenanceRate').value) / 100;
             const homeownersInsurance = parseCurrency(document.getElementById('homeownersInsurance').value);
+            const monthlyBills = parseCurrency(document.getElementById('monthlyBills').value) || 0;
             const closingCostsRate = parsePercent(document.getElementById('closingCostsRate').value) / 100;
 
             // Social Security COLA
@@ -2081,8 +2107,10 @@
                     const buyYearIncome = isRetired ? (hasSS ? socialSecurity / 12 : 0) : currentMonthlyIncome;
                     const buyYearSavings = (buyYearIncome - buyYearExpenses) * 12;
                     const closingCosts = housePrice * closingCostsRate;
-                    const availableFunds = balance + (balance * annualReturn) + buyYearSavings;
-                    actualDownPayment = Math.min(downPayment, housePrice, Math.max(0, availableFunds - closingCosts));
+                    // Correct calculation: down payment is taken at start of year, so it doesn't earn returns
+                    // Available = (starting_balance * (1 + return) + savings - closing_costs) / (1 + return)
+                    const availableFunds = (balance * (1 + annualReturn) + buyYearSavings - closingCosts) / (1 + annualReturn);
+                    actualDownPayment = Math.min(downPayment, housePrice, Math.max(0, availableFunds));
                     mortgageBalance = housePrice - actualDownPayment;
                     actualMonthlyMortgage = calculateMortgagePayment(mortgageBalance, mortgageRate, mortgageTerm);
                     annualMortgage = actualMonthlyMortgage * 12;
@@ -2094,14 +2122,20 @@
 
                 // Housing costs (calculated after isBuyYear so homeValue/assessedValue are set)
                 let housingCosts = 0;
+                let propertyTax = 0;
+                let maintenance = 0;
+                let insurance = 0;
+                let bills = 0;
                 if (hasHouse) {
                     // Prop 13: property tax based on assessed value (capped growth), not market value
                     const taxableValue = prop13 ? assessedValue : homeValue;
-                    const propertyTax = taxableValue * propertyTaxRate;
+                    propertyTax = taxableValue * propertyTaxRate;
                     // Maintenance scales with inflation, not home appreciation
                     const baseMaintenance = housePrice * maintenanceRate;
-                    const maintenance = baseMaintenance * Math.pow(1 + inflationRate, yearsFromStart - (houseAge - currentAge));
-                    housingCosts = propertyTax + maintenance + homeownersInsurance;
+                    maintenance = baseMaintenance * Math.pow(1 + inflationRate, yearsFromStart - (houseAge - currentAge));
+                    insurance = homeownersInsurance;
+                    bills = monthlyBills * 12;
+                    housingCosts = propertyTax + maintenance + insurance + bills;
                 }
 
                 if (hasHouse && mortgageBalance > 0) {
@@ -2187,15 +2221,25 @@
                     phase,
                     startBalance,
                     income: !isRetired ? annualIncome : 0,
+                    totalIncome: cashIn,
+                    livingExpenses: isRetired ? annualRetirementExpenses : annualExpenses,
                     gains,
                     cashIn,
                     cashOut,
-                    rent: rentThisYear,
                     endBalance: Math.max(0, balance),
-                    mortgagePayment: mortgagePayment + extraPrincipal,
+                    mortgagePayment: mortgagePayment,
+                    piti: mortgagePayment + propertyTax + insurance,
+                    propertyTax: propertyTax,
+                    insurance: insurance,
+                    maintenance: maintenance,
+                    bills: bills,
+                    rent: rentThisYear,
+                    extraPrincipal: extraPrincipal,
+                    totalHousing: rentThisYear + mortgagePayment + extraPrincipal + housingCosts,
                     mortgageBalance: Math.max(0, mortgageBalance),
                     homeValue: hasHouse ? homeValue : 0,
-                    housingCosts: hasHouse ? housingCosts : 0,
+                    netWorth: balance + (hasHouse ? homeValue : 0) - Math.max(0, mortgageBalance),
+                    netInvestment: cashIn - cashOut,
                     inflationMultiplier
                 });
             }
@@ -2229,8 +2273,8 @@
                     <div class="value">${formatMoney(ssStartBalance)}</div>
                 </div>
                 <div class="summary-card">
-                    <div class="label">Monthly Mortgage</div>
-                    <div class="value">${formatMoney(actualMonthlyMortgage)}</div>
+                    <div class="label">Monthly Housing (PITI)</div>
+                    <div class="value">${formatMoney(actualMonthlyMortgage + (housePrice * (propertyTaxRate + maintenanceRate) + homeownersInsurance) / 12)}</div>
                     <div class="sub">${mortgageTerm}-year @ ${mortgageRate}%</div>
                     <div class="sub">Total Interest: ${formatMoney(Math.round(totalInterestPaid))}</div>
                 </div>
@@ -2263,17 +2307,20 @@
                         <td>${row.year}</td>
                         <td>${row.age}</td>
                         <td class="${phaseClass}">${row.phase}</td>
-                        <td>${formatMoney(getVal(row.startBalance))}</td>
-                        <td>${formatMoney(getVal(row.income))}</td>
-                        <td>${formatMoney(getVal(row.gains))}</td>
-                        <td>${formatMoney(getVal(row.cashIn))}</td>
-                        <td>${formatMoney(getVal(row.cashOut))}</td>
-                        <td>${formatMoney(getVal(row.rent))}</td>
-                        <td>${formatMoney(getVal(row.endBalance))}</td>
-                        <td>${formatMoney(getVal(row.mortgagePayment))}</td>
-                        <td>${formatMoney(getVal(row.mortgageBalance))}</td>
-                        <td>${formatMoney(getVal(row.homeValue))}</td>
-                        <td>${formatMoney(getVal(row.housingCosts))}</td>
+                        <td>${formatMoney(getVal(row.totalIncome))}</td>
+                        <td>${formatMoney(getVal(row.livingExpenses))}</td>
+                        <td class="detail-column housing-detail ${expandedSections.has('housing') ? 'expanded' : ''}">${formatMoney(getVal(row.piti))}</td>
+                        <td class="detail-column housing-detail ${expandedSections.has('housing') ? 'expanded' : ''}">${formatMoney(getVal(row.rent))}</td>
+                        <td class="detail-column housing-detail ${expandedSections.has('housing') ? 'expanded' : ''}">${formatMoney(getVal(row.bills))}</td>
+                        <td class="detail-column housing-detail ${expandedSections.has('housing') ? 'expanded' : ''}">${formatMoney(getVal(row.maintenance))}</td>
+                        <td class="detail-column housing-detail ${expandedSections.has('housing') ? 'expanded' : ''}">${formatMoney(getVal(row.extraPrincipal))}</td>
+                        <td>${formatMoney(getVal(row.totalHousing))}</td>
+                        <td class="${getVal(row.netInvestment) >= 0 ? 'positive' : 'negative'}">${formatMoney(getVal(row.netInvestment))}</td>
+                        <td class="detail-column investments-detail ${expandedSections.has('investments') ? 'expanded' : ''}">${formatMoney(getVal(row.gains))}</td>
+                        <td class="detail-column balances-detail ${expandedSections.has('balances') ? 'expanded' : ''}">${formatMoney(getVal(row.endBalance))}</td>
+                        <td class="detail-column balances-detail ${expandedSections.has('balances') ? 'expanded' : ''}">${formatMoney(getVal(row.mortgageBalance))}</td>
+                        <td class="detail-column balances-detail ${expandedSections.has('balances') ? 'expanded' : ''}">${formatMoney(getVal(row.homeValue))}</td>
+                        <td>${formatMoney(getVal(row.netWorth))}</td>
                     </tr>
                 `;
             }).join('');
@@ -2775,6 +2822,54 @@
         });
 
         clearUnsavedChanges();
+
+        // Column toggle function
+        function toggleColumns(section) {
+            const detailClass = section + '-detail';
+            const columns = document.querySelectorAll('.' + detailClass);
+            const isExpanded = expandedSections.has(section);
+
+            columns.forEach(col => {
+                if (isExpanded) {
+                    col.classList.remove('expanded');
+                } else {
+                    col.classList.add('expanded');
+                }
+            });
+
+            // Update the expand icon and colspan
+            const headers = document.querySelectorAll('.collapsible-header');
+            headers.forEach(header => {
+                const headerText = header.textContent.trim();
+                const sectionName = headerText.split(' ')[0].toLowerCase(); // Get first word (Housing, Investments, Balances)
+
+                if (sectionName === section) {
+                    const icon = header.querySelector('.expand-icon');
+                    if (icon) {
+                        icon.textContent = isExpanded ? '▸' : '▾';
+                    }
+
+                    // Update colspan
+                    if (isExpanded) {
+                        // Collapsed: show only summary columns
+                        if (section === 'housing') header.setAttribute('colspan', '1');
+                        else if (section === 'investments') header.setAttribute('colspan', '1');
+                        else if (section === 'balances') header.setAttribute('colspan', '1');
+                    } else {
+                        // Expanded: show all columns
+                        if (section === 'housing') header.setAttribute('colspan', '6');
+                        else if (section === 'investments') header.setAttribute('colspan', '2');
+                        else if (section === 'balances') header.setAttribute('colspan', '4');
+                    }
+                }
+            });
+
+            if (isExpanded) {
+                expandedSections.delete(section);
+            } else {
+                expandedSections.add(section);
+            }
+        }
     </script>
 </body>
 </html>
