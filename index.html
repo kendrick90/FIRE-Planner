@@ -45,22 +45,28 @@
             padding: 20px;
             border: 1px solid #30363d;
             max-height: 820px;
-            overflow-y: auto;
+            overflow: visible;
+            position: relative;
         }
-        .inputs-panel::-webkit-scrollbar {
+        .inputs-scroll-wrapper {
+            max-height: 780px;
+            overflow-y: auto;
+            overflow-x: visible;
+        }
+        .inputs-scroll-wrapper::-webkit-scrollbar {
             width: 8px;
         }
-        .inputs-panel::-webkit-scrollbar-track {
+        .inputs-scroll-wrapper::-webkit-scrollbar-track {
             background: #161b22;
         }
-        .inputs-panel::-webkit-scrollbar-thumb {
+        .inputs-scroll-wrapper::-webkit-scrollbar-thumb {
             background: #30363d;
             border-radius: 4px;
         }
-        .inputs-panel::-webkit-scrollbar-thumb:hover {
+        .inputs-scroll-wrapper::-webkit-scrollbar-thumb:hover {
             background: #484f58;
         }
-        .inputs-panel {
+        .inputs-scroll-wrapper {
             scrollbar-width: thin;
             scrollbar-color: #30363d #161b22;
         }
@@ -687,6 +693,7 @@
 
         <div class="top-section">
             <div class="inputs-panel">
+                <div class="inputs-scroll-wrapper">
                 <h2>Inputs</h2>
 
                 <div class="input-section">
@@ -1024,6 +1031,7 @@
                             </div>
                         </div>
                     </div>
+                </div>
                 </div>
             </div>
 
@@ -2508,8 +2516,9 @@
             if (balanceChart && cashFlowChart && mortgageChart) {
                 balanceChart.data.labels = labels;
                 balanceChart.data.datasets[0].data = data.map(d => getVal(d, 'startBalance'));
-                balanceChart.data.datasets[1].data = data.map(d => getVal(d, 'endBalance'));
-                balanceChart.data.datasets[2].data = data.map(d => {
+                balanceChart.data.datasets[1].data = data.map(d => getVal(d, 'netWorth'));
+                balanceChart.data.datasets[2].data = data.map(d => getVal(d, 'endBalance'));
+                balanceChart.data.datasets[3].data = data.map(d => {
                     const equity = d.homeValue - d.mortgageBalance;
                     return showRealDollars ? equity / d.inflationMultiplier : equity;
                 });
@@ -2517,13 +2526,13 @@
                 // Update survival probability curve
                 const showLifeExpectancy = document.getElementById('showLifeExpectancy').checked;
                 const lifeExpectancy = parseInt(document.getElementById('lifeExpectancy').value) || 75;
-                balanceChart.data.datasets[3].data = data.map(d => calculateSurvivalProbability(d.age, lifeExpectancy));
-                balanceChart.data.datasets[3].hidden = !showLifeExpectancy;
+                balanceChart.data.datasets[4].data = data.map(d => calculateSurvivalProbability(d.age, lifeExpectancy));
+                balanceChart.data.datasets[4].hidden = !showLifeExpectancy;
                 balanceChart.options.scales.y1.display = showLifeExpectancy;
 
                 const yMaxInput = document.getElementById('yAxisMax').value;
                 const yMaxValue = parseCurrency(yMaxInput);
-                const dataMax = Math.max(...data.map(d => Math.max(getVal(d, 'startBalance'), getVal(d, 'endBalance'))));
+                const dataMax = Math.max(...data.map(d => Math.max(getVal(d, 'startBalance'), getVal(d, 'endBalance'), getVal(d, 'netWorth'))));
                 balanceChart.options.scales.y.max = yMaxValue > 0 ? Math.min(yMaxValue, dataMax * 1.1) : undefined;
 
                 const milestones = getMilestones();
@@ -2535,16 +2544,17 @@
                 cashFlowChart.data.labels = labels;
                 cashFlowChart.data.datasets[0].data = data.map(d => getVal(d, 'cashIn'));
                 cashFlowChart.data.datasets[1].data = data.map(d => getVal(d, 'cashOut'));
-                cashFlowChart.data.datasets[2].data = data.map(d => getVal(d, 'rent'));
-                cashFlowChart.data.datasets[3].data = data.map(d => {
+                cashFlowChart.data.datasets[2].data = data.map(d => getVal(d, 'piti'));
+                cashFlowChart.data.datasets[3].data = data.map(d => getVal(d, 'rent'));
+                cashFlowChart.data.datasets[4].data = data.map(d => {
                     const netChange = d.gains + d.cashIn - d.cashOut;
                     return showRealDollars ? netChange / d.inflationMultiplier : netChange;
                 });
-                cashFlowChart.data.datasets[4].data = data.map(d => getVal(d, 'gains'));
+                cashFlowChart.data.datasets[5].data = data.map(d => getVal(d, 'gains'));
 
                 const cfYMaxInput = document.getElementById('cashFlowYMax').value;
                 const cfYMaxValue = parseCurrency(cfYMaxInput);
-                const cfDataMax = Math.max(...data.map(d => Math.max(getVal(d, 'cashIn'), getVal(d, 'cashOut'), getVal(d, 'gains'))));
+                const cfDataMax = Math.max(...data.map(d => Math.max(getVal(d, 'cashIn'), getVal(d, 'cashOut'), getVal(d, 'gains'), getVal(d, 'piti'))));
                 const cfDataMin = Math.min(...data.map(d => {
                     const netChange = d.gains + d.cashIn - d.cashOut;
                     return showRealDollars ? netChange / d.inflationMultiplier : netChange;
@@ -2610,6 +2620,16 @@
                             borderWidth: 2,
                             fill: true,
                             tension: 0.1
+                        },
+                        {
+                            label: 'Net Worth',
+                            data: data.map(d => getVal(d, 'netWorth')),
+                            borderColor: '#3fb950',
+                            backgroundColor: 'rgba(63, 185, 80, 0.1)',
+                            borderWidth: 3,
+                            fill: false,
+                            tension: 0.1,
+                            yAxisID: 'y'
                         },
                         {
                             label: 'End Balance',
@@ -2680,6 +2700,16 @@
                             borderWidth: 2,
                             fill: false,
                             tension: 0.1
+                        },
+                        {
+                            label: 'PITI',
+                            data: data.map(d => getVal(d, 'piti')),
+                            borderColor: '#79c0ff',
+                            borderWidth: 2,
+                            borderDash: [3, 3],
+                            fill: false,
+                            tension: 0.1,
+                            hidden: false
                         },
                         {
                             label: 'Rent',
